@@ -1,5 +1,5 @@
 const fs = require("fs");
-// const csv = require("csv-parser");
+const csv = require("csv-parser");
 
 const playerRowKeyNames = [
   "position",
@@ -10,33 +10,16 @@ const playerRowKeyNames = [
   "avgPoints",
 ];
 
-const getPlayerFromRow = (rowData) =>
-  playerRowKeyNames.reduce(
-    (player, key, idx) => ({
-      ...player,
-      [key]: rowData[idx].trim(),
-    }),
-    {}
-  );
-
 const parseCsvFile = (file) =>
   new Promise((resolve, reject) => {
-    fs.readFile(file, "utf8", (err, data) => {
-      if (err) {
-        return reject(err);
-      }
+    const results = [];
 
-      return resolve(data.split("\n").map((row) => row.split(",")));
-    });
+    return fs
+      .createReadStream(file)
+      .on("error", reject)
+      .pipe(csv(playerRowKeyNames))
+      .on("data", (data) => results.push(data))
+      .on("end", () => resolve(results));
   });
 
-const parsePlayerData = (data) => {
-  // Check for header row
-  if (data[0][0] === "Position") {
-    data.shift();
-  }
-
-  return data.map(getPlayerFromRow);
-};
-
-module.exports = (file) => parseCsvFile(file).then(parsePlayerData);
+module.exports = parseCsvFile;
