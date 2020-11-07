@@ -9,5 +9,10 @@ module.exports = async (file) => {
     data.shift();
   }
 
-  return data;
+  // Add unique 'playerId' column
+  let playerId = 1;
+  return data.map((player) => ({
+    playerId: playerId++,
+    ...player,
+  }));
 };
