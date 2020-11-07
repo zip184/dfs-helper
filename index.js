@@ -1,4 +1,4 @@
-const readPlayersFile = require("./read-players-file");
+const readPlayersFile = require("./load-players");
 
 readPlayersFile("test-players.csv")
   .then((players) => {

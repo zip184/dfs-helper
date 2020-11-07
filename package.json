@@ -1,5 +1,5 @@
 {
-  "name": "dfs",
+  "name": "dfs-helper",
   "version": "1.0.0",
   "description": "Bret's DFS lineup generator",
   "main": "index.js",
