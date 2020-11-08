@@ -1,14 +1,6 @@
 const fs = require("fs");
 const csv = require("csv-parser");
-
-const playerRowKeyNames = [
-  "position",
-  "name",
-  "salary",
-  "game",
-  "team",
-  "avgPoints",
-];
+const { playerRowKeyNames } = require("../dfs-helper.config");
 
 const parseCsvFile = (file) =>
   new Promise((resolve, reject) => {

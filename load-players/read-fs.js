@@ -1,13 +1,5 @@
 const fs = require("fs");
-
-const playerRowKeyNames = [
-  "position",
-  "name",
-  "salary",
-  "game",
-  "team",
-  "avgPoints",
-];
+const { playerRowKeyNames } = require("../dfs-helper.config");
 
 const getPlayerFromRow = (rowData) =>
   playerRowKeyNames.reduce(

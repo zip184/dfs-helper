@@ -1,7 +1,7 @@
-const parseCsvFile = require("./read-csv-parser");
-// const parseCsvFile = require("./read-fs");
+// const parseCsvFile = require("./read-csv-parser");
+const parseCsvFile = require("./read-fs");
 
-module.exports = async (file) => {
+const readPlayersCsv = async (file) => {
   const data = await parseCsvFile(file);
 
   // Check for header row
@@ -15,4 +15,8 @@ module.exports = async (file) => {
     playerId: playerId++,
     ...player,
   }));
+};
+
+module.exports = {
+  readPlayersCsv,
 };
