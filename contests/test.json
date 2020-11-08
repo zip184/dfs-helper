@@ -1,8 +1,8 @@
 {
-    "maxSalary": 20299,
+    "maxSalary": 50000,
     "roster": {
         "QB": 1,
-        "TE": 1,
-        "WR": 1
+        "TE": 5,
+        "WR": 3
     }
 }

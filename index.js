@@ -16,7 +16,8 @@ const main = async () => {
   printIds("players", players);
 
   const allLineups = await generateAllValidLineups(contest, players);
-  allLineups.forEach((perm, i) => printIds(`lineup ${i + 1}`, perm));
+  console.log(`Total lineups found: ${allLineups.length}`);
+  // allLineups.forEach((perm, i) => printIds(`lineup ${i + 1}`, perm));
 };
 
 main().catch((err) => console.error("Error occured in main script:", err));
