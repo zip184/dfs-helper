@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const { readPlayersCsv } = require("./load-players");
 const { generateAllValidLineups } = require("./lineup-generator");
 
@@ -18,4 +19,4 @@ const main = async () => {
   allLineups.forEach((perm, i) => printIds(`lineup ${i + 1}`, perm));
 };
 
-main().catch((err) => console.error("Error occured in main execution:", err));
+main().catch((err) => console.error("Error occured in main script:", err));
