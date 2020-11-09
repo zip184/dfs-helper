@@ -1,9 +1,9 @@
-const lineupRules = require("./rules");
+const { allRules } = require("./rules");
 
 const getValidLineups = (contest, lineups) => {
   let validLineups = lineups;
 
-  lineupRules.forEach((rule) => {
+  allRules.forEach((rule) => {
     validLineups = validLineups.filter((lineup) => rule(contest, lineup));
   });
 
