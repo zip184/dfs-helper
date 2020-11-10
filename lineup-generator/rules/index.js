@@ -1,9 +1,24 @@
-const fitsSalaryCap = (contest, lineup) => {
+const {
+  minSalaryThresholdPct: minSalConfig,
+} = require("../../dfs-helper.config");
+
+const totalLineupSalary = (lineup) =>
+  lineup.reduce((total, { salary }) => total + +salary, 0);
+
+const fitsSalaryRestrictions = (
+  contest,
+  lineup,
+  minSalaryThresholdPct = minSalConfig // just for testing
+) => {
   const { maxSalary } = contest;
 
-  const totalSalary = lineup.reduce((total, { salary }) => total + +salary, 0);
+  const totalSalary = totalLineupSalary(lineup);
 
-  return totalSalary <= maxSalary;
+  return (
+    totalSalary <= maxSalary &&
+    (minSalaryThresholdPct >= 1 ||
+      totalSalary / maxSalary >= minSalaryThresholdPct)
+  );
 };
 
 const getPlayerPositions = ({ rosterPositions }) => rosterPositions.split("/");
@@ -14,14 +29,25 @@ const correctPositionCounts = (
   skippedAssignmentSet = new Set()
 ) => {
   const { roster, playerCount } = contest;
-  const pickedPositions = new Map();
 
+  if (playerCount === 0 && lineup.length === 0) {
+    // Empty lineup is correct for no positions
+    return true;
+  }
+
+  if (playerCount !== lineup.length) {
+    // Too little or too many players, fails
+    return false;
+  }
+
+  const pickedPositions = {};
   let pickedCount = 0;
-  let posPlayerHash = null;
+  let lastHashToSkip = null;
 
   for (let lineupIndex = 0; lineupIndex < lineup.length; lineupIndex++) {
     const player = lineup[lineupIndex];
     const positions = getPlayerPositions(player);
+    let pickedPos = null;
 
     for (let posIndex = 0; posIndex < positions.length; posIndex++) {
       const pos = positions[posIndex];
@@ -29,44 +55,53 @@ const correctPositionCounts = (
       const rosterCount = roster[pos] || 0;
       const curPosCount = pickedPositions[pos] || 0;
 
+      // Check if the position is open
       if (rosterCount - curPosCount > 0) {
-        // This position is open
-
-        // Check if we've tried this yet
+        // Check if they're more positions after this one
         if (posIndex < positions.length - 1) {
-          // We've got more positions after this
+          const posPlayerHash = `${player.playerId}|${pos}`;
 
-          posPlayerHash = `${player.playerId}|${pos}`;
+          // Check if we've tried this yet
           if (skippedAssignmentSet.has(posPlayerHash)) {
             // We've already tried this configuration, so lets look for another position we haven't tried
             continue;
           }
+          lastHashToSkip = posPlayerHash;
         }
 
-        pickedPositions.set(pos, curPosCount + 1);
+        pickedPos = pos;
+        pickedPositions[pos] = curPosCount + 1;
         pickedCount++;
 
         if (pickedCount === playerCount) {
           // We've found a valid lineup configuration!
           return true;
         }
+
+        // We've chosen this position, move into the next player
+        break;
       }
+    }
+
+    if (!pickedPos) {
+      // This player couldn't find a position, exit this configuration attempt
+      break;
     }
   }
 
   // We did not find valid configuration
-  if (!posPlayerHash) {
+  if (!lastHashToSkip) {
     // We know there were no more optional positions to try so we know this lineup failed
     return false;
   }
 
   // There's more configurations to try
-  skippedAssignmentSet.add(posPlayerHash);
+  skippedAssignmentSet.add(lastHashToSkip);
   return correctPositionCounts(contest, lineup, skippedAssignmentSet);
 };
 
 module.exports = {
-  allRules: [fitsSalaryCap, correctPositionCounts],
-  fitsSalaryCap,
+  allRules: [fitsSalaryRestrictions, correctPositionCounts],
   correctPositionCounts,
+  fitsSalaryRestrictions,
 };

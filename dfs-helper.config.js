@@ -1,12 +1,12 @@
-// const classicContest = require("./contests/classic.json");
-const testContest = require("./contests/test.json");
+const classicContest = require("./contests/classic.json");
+// const testContest = require("./contests/test.json");
 
 const playerRowKeyNames = [
   "position",
   "nameId",
   "name",
   "playerId",
-  "rosterPosition",
+  "rosterPositions",
   "salary",
   "game",
   "team",
@@ -15,6 +15,7 @@ const playerRowKeyNames = [
 
 module.exports = {
   playerRowKeyNames,
-  contest: testContest,
-  // contest: classicContest,
+  // contest: testContest,
+  contest: classicContest,
+  minSalaryThresholdPct: 0.8,
 };
