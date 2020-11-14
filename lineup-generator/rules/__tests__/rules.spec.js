@@ -1,4 +1,9 @@
-const { fitsSalaryRestrictions, correctPositionCounts } = require("../index");
+const {
+  fitsSalaryCap,
+  fitsMinSalaryPct,
+  underMaxRemainingSalary,
+  correctPositionCounts,
+} = require("../index");
 
 const createContest = (roster) => ({
   roster,
@@ -12,28 +17,24 @@ const createPlayers = (...positions) =>
   }));
 
 describe("validation rules", () => {
-  describe("fitsSalaryRestrictions", () => {
+  describe("fitsSalaryCap", () => {
     it("empty tests", () => {
-      expect(fitsSalaryRestrictions({ maxSalary: 0 }, [], 1)).toBeTruthy();
-      expect(fitsSalaryRestrictions({ maxSalary: 100 }, [], 1)).toBeTruthy();
-      expect(fitsSalaryRestrictions({ maxSalary: -1 }, [], 1)).not.toBeTruthy();
+      expect(fitsSalaryCap({ maxSalary: 0 }, [], 1)).toBeTruthy();
+      expect(fitsSalaryCap({ maxSalary: 100 }, [], 1)).toBeTruthy();
+      expect(fitsSalaryCap({ maxSalary: -1 }, [], 1)).not.toBeTruthy();
     });
 
     it("single player", () => {
+      expect(fitsSalaryCap({ maxSalary: 10 }, [{ salary: 5 }], 1)).toBeTruthy();
+      expect(fitsSalaryCap({ maxSalary: 5 }, [{ salary: 5 }], 1)).toBeTruthy();
       expect(
-        fitsSalaryRestrictions({ maxSalary: 10 }, [{ salary: 5 }], 1)
-      ).toBeTruthy();
-      expect(
-        fitsSalaryRestrictions({ maxSalary: 5 }, [{ salary: 5 }], 1)
-      ).toBeTruthy();
-      expect(
-        fitsSalaryRestrictions({ maxSalary: 500 }, [{ salary: 501 }], 1)
+        fitsSalaryCap({ maxSalary: 500 }, [{ salary: 501 }], 1)
       ).not.toBeTruthy();
     });
 
     it("multiple players", () => {
       expect(
-        fitsSalaryRestrictions(
+        fitsSalaryCap(
           { maxSalary: 50 },
           [{ salary: 10 }, { salary: 10 }, { salary: 10 }],
           1
@@ -41,7 +42,7 @@ describe("validation rules", () => {
       ).toBeTruthy();
 
       expect(
-        fitsSalaryRestrictions(
+        fitsSalaryCap(
           { maxSalary: 60 },
           [{ salary: 20 }, { salary: 30 }, { salary: 10 }],
           1
@@ -49,7 +50,7 @@ describe("validation rules", () => {
       ).toBeTruthy();
 
       expect(
-        fitsSalaryRestrictions(
+        fitsSalaryCap(
           { maxSalary: 800 },
           [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
           1
@@ -57,7 +58,7 @@ describe("validation rules", () => {
       ).toBeTruthy();
 
       expect(
-        fitsSalaryRestrictions(
+        fitsSalaryCap(
           { maxSalary: 799 },
           [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
           1
@@ -65,28 +66,56 @@ describe("validation rules", () => {
       ).not.toBeTruthy();
 
       expect(
-        fitsSalaryRestrictions(
+        fitsSalaryCap(
           { maxSalary: 500 },
           [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
           1
         )
       ).not.toBeTruthy();
     });
+  });
 
-    it("test threshold", () => {
+  describe("fitsMinSalaryPct", () => {
+    it("test percent threshold", () => {
       // Less fails
       expect(
-        fitsSalaryRestrictions({ maxSalary: 100 }, [{ salary: 60 }], 0.7)
+        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 60 }], 0.7)
       ).not.toBeTruthy();
 
       // Same passes
       expect(
-        fitsSalaryRestrictions({ maxSalary: 100 }, [{ salary: 70 }], 0.7)
+        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 70 }], 0.7)
       ).toBeTruthy();
 
       // Over passes
       expect(
-        fitsSalaryRestrictions({ maxSalary: 100 }, [{ salary: 80 }], 0.7)
+        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 80 }], 0.7)
+      ).toBeTruthy();
+    });
+  });
+
+  describe("underMaxRemainingSalary", () => {
+    it("test max salary threshold", () => {
+      // More fails
+      expect(
+        underMaxRemainingSalary({ maxSalary: 100 }, [{ salary: 80 }], 10)
+      ).not.toBeTruthy();
+
+      // Same passes
+      expect(
+        underMaxRemainingSalary({ maxSalary: 1000 }, [{ salary: 800 }], 200)
+      ).toBeTruthy();
+      expect(
+        underMaxRemainingSalary(
+          { maxSalary: 100 },
+          [{ salary: 50 }, { salary: 50 }],
+          0
+        )
+      ).toBeTruthy();
+
+      // Less passes
+      expect(
+        underMaxRemainingSalary({ maxSalary: 100 }, [{ salary: 90 }], 20)
       ).toBeTruthy();
     });
   });

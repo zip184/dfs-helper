@@ -1,24 +1,51 @@
+const config = require("../../dfs-helper.config");
+
 const {
-  minSalaryThresholdPct: minSalConfig,
-} = require("../../dfs-helper.config");
+  minSalaryThresholdPct: minSalaryPctConfig,
+  maxRemainingSalaryThreshold: maxRemainingSalaryConfig,
+} = config;
 
 const totalLineupSalary = (lineup) =>
   lineup.reduce((total, { salary }) => total + +salary, 0);
 
-const fitsSalaryRestrictions = (
+const fitsMinSalaryPct = (
   contest,
   lineup,
-  minSalaryThresholdPct = minSalConfig // just for testing
+  minSalaryPct = minSalaryPctConfig // Param just for testing
 ) => {
-  const { maxSalary } = contest;
+  if (!minSalaryPct || minSalaryPct <= 0) {
+    // Rule is disabled, so always pass
+    return true;
+  }
 
+  const { maxSalary } = contest;
   const totalSalary = totalLineupSalary(lineup);
 
-  return (
-    totalSalary <= maxSalary &&
-    (minSalaryThresholdPct >= 1 ||
-      totalSalary / maxSalary >= minSalaryThresholdPct)
-  );
+  return totalSalary / maxSalary >= minSalaryPct;
+};
+
+const underMaxRemainingSalary = (
+  contest,
+  lineup,
+  maxRemainingSalary = maxRemainingSalaryConfig // Param just for testing
+) => {
+  if (!maxRemainingSalary || maxRemainingSalary <= 0) {
+    // Rule is disabled, so always pass
+    return true;
+  }
+
+  const { maxSalary } = contest;
+  const totalSalary = totalLineupSalary(lineup);
+
+  return maxSalary - totalSalary <= maxRemainingSalary;
+};
+
+const fitsSalaryCap = (contest, lineup) => {
+  const { maxSalary } = contest;
+
+  const totalSalary = lineup.reduce((total, { salary }) => total + +salary, 0);
+
+  return totalSalary <= maxSalary;
 };
 
 const getPlayerPositions = ({ rosterPositions }) => rosterPositions.split("/");
@@ -101,7 +128,14 @@ const correctPositionCounts = (
 };
 
 module.exports = {
-  allRules: [fitsSalaryRestrictions, correctPositionCounts],
+  allRules: [
+    fitsSalaryCap,
+    fitsMinSalaryPct,
+    correctPositionCounts,
+    underMaxRemainingSalary,
+  ],
   correctPositionCounts,
-  fitsSalaryRestrictions,
+  fitsSalaryCap,
+  fitsMinSalaryPct,
+  underMaxRemainingSalary,
 };

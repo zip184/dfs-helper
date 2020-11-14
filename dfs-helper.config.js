@@ -17,5 +17,6 @@ module.exports = {
   playerRowKeyNames,
   // contest: testContest,
   contest: classicContest,
-  minSalaryThresholdPct: 0.8,
+  minSalaryThresholdPct: 0,
+  maxRemainingSalaryThreshold: 10000,
 };
