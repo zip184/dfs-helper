@@ -3,6 +3,7 @@ const {
   fitsMinSalaryPct,
   underMaxRemainingSalary,
   correctPositionCounts,
+  hasTwoDifferentGames,
 } = require("../index");
 
 const createContest = (roster) => ({
@@ -354,6 +355,106 @@ describe("validation rules", () => {
           contest,
           createPlayers("QB", "FLEX/RB", "WR/FLEX", "WR/FLEX")
         )
+      ).toBeTruthy();
+    });
+  });
+
+  describe("hasTwoDifferentGames", () => {
+    it("Empty case", () => {
+      expect(hasTwoDifferentGames({}, [])).not.toBeTruthy();
+    });
+
+    it("Single game fails", () => {
+      expect(
+        hasTwoDifferentGames({}, [{ game: "CHI@TEN 11/08/2020 01:00PM ET" }])
+      ).not.toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        ])
+      ).not.toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "x" },
+          { game: "x" },
+          { game: "x" },
+          { game: "x" },
+        ])
+      ).not.toBeTruthy();
+    });
+
+    it.only("Two games passes", () => {
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "CHI@TEN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        ])
+      ).toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "DET@MIN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+          { game: "DET@MIN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        ])
+      ).toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "x" },
+          { game: "y" },
+          { game: "y" },
+          { game: "x" },
+          { game: "x" },
+          { game: "x" },
+          { game: "y" },
+          { game: "y" },
+          { game: "y" },
+        ])
+      ).toBeTruthy();
+    });
+
+    it("More games passes", () => {
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "DET@MIN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+          { game: "DET@MIN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+          { game: "HOU@JAX 11/08/2020 01:00PM ET" },
+        ])
+      ).toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "DET@MIN 11/08/2020 01:00PM ET" },
+          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+          { game: "DEN@ATL 11/08/2020 01:00PM ET" },
+        ])
+      ).toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames({}, [
+          { game: "x" },
+          { game: "y" },
+          { game: "x" },
+          { game: "x" },
+          { game: "z" },
+          { game: "x" },
+          { game: "y" },
+          { game: "a" },
+          { game: "b" },
+          { game: "x" },
+          { game: "x" },
+          { game: "z" },
+          { game: "x" },
+          { game: "y" },
+          { game: "x" },
+        ])
       ).toBeTruthy();
     });
   });

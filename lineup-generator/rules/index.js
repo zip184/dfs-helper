@@ -127,11 +127,22 @@ const correctPositionCounts = (
   return correctPositionCounts(contest, lineup, skippedAssignmentSet);
 };
 
+const hasTwoDifferentGames = (contest, lineup) => {
+  const gameSet = new Set();
+  lineup.forEach((player) => gameSet.add(player.game));
+  return gameSet.size >= 2;
+};
+
 module.exports = {
   allRules: [
     {
       ruleFunction: fitsSalaryCap,
       title: "Doesn't Exceed Salary Cap",
+      isDkValidationRule: true,
+    },
+    {
+      ruleFunction: hasTwoDifferentGames,
+      title: "At Least Two Games",
       isDkValidationRule: true,
     },
     {
@@ -154,4 +165,5 @@ module.exports = {
   fitsSalaryCap,
   fitsMinSalaryPct,
   underMaxRemainingSalary,
+  hasTwoDifferentGames,
 };
