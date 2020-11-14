@@ -129,10 +129,26 @@ const correctPositionCounts = (
 
 module.exports = {
   allRules: [
-    fitsSalaryCap,
-    fitsMinSalaryPct,
-    correctPositionCounts,
-    underMaxRemainingSalary,
+    {
+      ruleFunction: fitsSalaryCap,
+      title: "Doesn't Exceed Salary Cap",
+      isDkValidationRule: true,
+    },
+    {
+      ruleFunction: fitsMinSalaryPct,
+      title: "Salary Meets Minimum Salary Threshold",
+      isDkValidationRule: false,
+    },
+    {
+      ruleFunction: underMaxRemainingSalary,
+      title: "Is Below Remaining Salary Limit",
+      isDkValidationRule: false,
+    },
+    {
+      ruleFunction: correctPositionCounts,
+      title: "Has Correct Position Counts",
+      isDkValidationRule: true,
+    },
   ],
   correctPositionCounts,
   fitsSalaryCap,

@@ -1,5 +1,5 @@
 const { findAllSetPermutations } = require("../utils");
-const { getValidLineups } = require("./lineup-validator");
+const { getPassingLineups } = require("./lineup-validator");
 
 // This has the side effect of saving the count as the 'playerCount' on the contest
 const getContestPlayerCount = (contest) => {
@@ -24,7 +24,7 @@ const getAllLineups = (contest, players) => {
 const generateAllValidLineups = (contest, players) => {
   const allLineups = getAllLineups(contest, players);
 
-  const validLineups = getValidLineups(contest, allLineups);
+  const validLineups = getPassingLineups(contest, allLineups);
 
   return Promise.resolve(validLineups);
 };

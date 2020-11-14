@@ -74,8 +74,15 @@ const findAllSetPermutations = (items, size) => {
   return headOnlyPerms.concat(tailPerms);
 };
 
+const sleep = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
 module.exports = {
   findAllArrayPermutations,
   findAllSetPermutationsStringify,
   findAllSetPermutations,
+  sleep,
 };
