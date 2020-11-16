@@ -80,9 +80,46 @@ const sleep = (ms) => {
   });
 };
 
+const colorOutputText = (text, color) => {
+  const defaultColorNumber = 37; // white
+  let colorNum;
+
+  switch (color) {
+    case "black":
+      colorNum = 30;
+      break;
+    case "red":
+      colorNum = 31;
+      break;
+    case "green":
+      colorNum = 32;
+      break;
+    case "yellow":
+      colorNum = 33;
+      break;
+    case "blue":
+      colorNum = 34;
+      break;
+    case "magenta":
+      colorNum = 35;
+      break;
+    case "cyan":
+      colorNum = 36;
+      break;
+    case "white":
+      colorNum = 37;
+      break;
+    default:
+      return text;
+  }
+
+  return `\x1b[${colorNum}m${text}\x1b[${defaultColorNumber}m`;
+};
+
 module.exports = {
   findAllArrayPermutations,
   findAllSetPermutationsStringify,
   findAllSetPermutations,
   sleep,
+  colorOutputText,
 };

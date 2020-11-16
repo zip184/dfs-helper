@@ -22,6 +22,7 @@ const getAllLineups = (contest, players) => {
 };
 
 const generateAllValidLineups = (contest, players) => {
+  process.stdout.write("Finding all possible player permutations\n");
   const allLineups = getAllLineups(contest, players);
 
   const validLineups = getPassingLineups(contest, allLineups);

@@ -1,4 +1,8 @@
 const { allRules } = require("./rules");
+const { colorOutputText } = require("../utils");
+
+const outputStream = process.stdout;
+const updateProgressPeriod = 10000;
 
 const runRules = (rules, contest, lineups) => {
   let remainingLineups = lineups;
@@ -7,16 +11,26 @@ const runRules = (rules, contest, lineups) => {
     const { title, ruleFunction } = rule;
     const startSize = remainingLineups.length;
 
-    process.stdout.write(
-      `Checking: '${title}' on ${remainingLineups.length} lineups - `
-    );
+    const outputLine = `Checking: '${title}' on ${remainingLineups.length} lineups - `;
+    const cursorPos = outputLine.length;
 
-    remainingLineups = remainingLineups.filter((lineup) =>
-      ruleFunction(contest, lineup)
-    );
+    outputStream.write(outputLine);
+
+    remainingLineups = remainingLineups.filter((lineup, i) => {
+      const passed = ruleFunction(contest, lineup);
+
+      if (i % updateProgressPeriod === 0) {
+        const pctComplete = Math.floor((i / startSize) * 100);
+        outputStream.cursorTo(cursorPos);
+        outputStream.write(colorOutputText(`${pctComplete} %`, "magenta"));
+      }
+
+      return passed;
+    });
 
     const removedCount = startSize - remainingLineups.length;
-    process.stdout.write(`removed ${removedCount}\n`);
+    outputStream.cursorTo(cursorPos);
+    outputStream.write(colorOutputText(`removed ${removedCount}\n`, "green"));
   });
 
   return remainingLineups;
