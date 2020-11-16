@@ -1,24 +1,36 @@
 /* eslint-disable no-console */
 const { readPlayersCsv } = require("./load-players");
 const { generateAllValidLineups } = require("./lineup-generator");
-
 const { contest } = require("./dfs-helper.config");
+const { findTopNLineups } = require("./lineup-ranker");
 
 const printIds = (label, players) =>
   console.log(
     label,
-    players.map((p) => `${p.playerId} ${p.name} ${p.salary}`)
+    players.map((p) => `${p.position} ${p.name} ${p.salary}`)
   );
 
 const main = async () => {
-  const players = await readPlayersCsv("test-players.csv");
+  const cliArgs = process.argv.slice(2);
+  const fileName = cliArgs[0];
+  if (!fileName) {
+    console.log("Error: Missing file name");
+    return;
+  }
+
+  const players = await readPlayersCsv(fileName);
 
   // printIds("players", players);
   // console.log(players);
 
   const allLineups = await generateAllValidLineups(contest, players);
+
   console.log(`Total lineups found: ${allLineups.length}`);
-  // allLineups.forEach((perm, i) => printIds(`lineup ${i + 1}`, perm));
+
+  const topLineups = findTopNLineups(contest, allLineups, 5);
+  topLineups.forEach(({ score, lineup }, i) =>
+    printIds(`lineup rank #${i + 1} score: ${score}`, lineup)
+  );
 };
 
 main().catch((err) => console.error("Error occured in main script:", err));
