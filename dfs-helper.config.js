@@ -13,10 +13,13 @@ const playerRowKeyNames = [
   "avgPoints",
 ];
 
+const requiredPlayers = ["Aaron Jones", "Mike Davis", "Stefon Diggs"];
+
 module.exports = {
   playerRowKeyNames,
   // contest: testContest,
   contest: classicContest,
   minSalaryThresholdPct: 0,
   maxRemainingSalaryThreshold: 10000,
+  requiredPlayers,
 };

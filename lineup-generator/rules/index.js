@@ -3,6 +3,7 @@ const config = require("../../dfs-helper.config");
 const {
   minSalaryThresholdPct: minSalaryPctConfig,
   maxRemainingSalaryThreshold: maxRemainingSalaryConfig,
+  requiredPlayers: requiredPlayersConfig,
 } = config;
 
 const totalLineupSalary = (lineup) =>
@@ -133,6 +134,13 @@ const hasTwoDifferentGames = (contest, lineup) => {
   return gameSet.size >= 2;
 };
 
+const hasRequiredPlayers = (_, lineup) => {
+  const lineupNameSet = new Set();
+  lineup.forEach(({ name }) => lineupNameSet.add(name));
+
+  return requiredPlayersConfig.every((name) => lineupNameSet.has(name));
+};
+
 module.exports = {
   allRules: [
     {
@@ -160,10 +168,16 @@ module.exports = {
       title: "Has Correct Position Counts",
       isDkValidationRule: true,
     },
+    {
+      ruleFunction: hasRequiredPlayers,
+      title: "Contains all required players",
+      isDkValidationRule: false,
+    },
   ],
   correctPositionCounts,
   fitsSalaryCap,
   fitsMinSalaryPct,
   underMaxRemainingSalary,
   hasTwoDifferentGames,
+  hasRequiredPlayers,
 };
