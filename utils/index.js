@@ -23,8 +23,8 @@ const findAllArrayPermutations = (items, maxSize) => {
   return allSubPerms;
 };
 
-// Not currently longer used since it's many times slower than findAllSetPermutations
-const findAllSetPermutationsStringify = (items, permSize) => {
+// Not currently longer used since it's many times slower than findAllCombinations
+const findAllCombinationsStringify = (items, permSize) => {
   // Base cases
   if (permSize === 1) {
     return items.map((p) => [p]);
@@ -49,7 +49,7 @@ const findAllSetPermutationsStringify = (items, permSize) => {
 };
 
 // Finds all "set unique" array permutations of the given size
-const findAllSetPermutations = (items, size) => {
+const findAllCombinations = (items, size) => {
   if (size === 0 || items.length < size) {
     return [];
   }
@@ -63,13 +63,13 @@ const findAllSetPermutations = (items, size) => {
   const tail = items.slice(1);
 
   // Find all perms that involve the first item
-  const headOnlyPerms = findAllSetPermutations(tail, size - 1).map((perm) => [
+  const headOnlyPerms = findAllCombinations(tail, size - 1).map((perm) => [
     items[0],
     ...perm,
   ]);
 
   // Find all perms that do not include the head
-  const tailPerms = findAllSetPermutations(tail, size);
+  const tailPerms = findAllCombinations(tail, size);
 
   return headOnlyPerms.concat(tailPerms);
 };
@@ -118,8 +118,8 @@ const colorOutputText = (text, color) => {
 
 module.exports = {
   findAllArrayPermutations,
-  findAllSetPermutationsStringify,
-  findAllSetPermutations,
+  findAllCombinationsStringify,
+  findAllCombinations,
   sleep,
   colorOutputText,
 };

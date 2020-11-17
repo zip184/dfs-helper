@@ -1,7 +1,7 @@
 const {
   findAllArrayPermutations,
-  findAllSetPermutationsStringify,
-  findAllSetPermutations,
+  findAllCombinationsStringify,
+  findAllCombinations,
 } = require("../index");
 
 const runCommonTests = (testFunction) => {
@@ -88,13 +88,13 @@ describe("utils", () => {
     });
   });
 
-  describe("findAllSetPermutationsStringify function", () => {
-    runCommonTests(findAllSetPermutationsStringify);
-    runUniqueTests(findAllSetPermutationsStringify);
+  describe("findAllCombinationsStringify function", () => {
+    runCommonTests(findAllCombinationsStringify);
+    runUniqueTests(findAllCombinationsStringify);
   });
 
-  describe("findAllSetPermutationsStringify function", () => {
-    runCommonTests(findAllSetPermutations);
-    runUniqueTests(findAllSetPermutations);
+  describe("findAllCombinationsStringify function", () => {
+    runCommonTests(findAllCombinations);
+    runUniqueTests(findAllCombinations);
   });
 });
