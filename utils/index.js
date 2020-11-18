@@ -49,29 +49,50 @@ const findAllCombinationsStringify = (items, permSize) => {
 };
 
 // Finds all "set unique" array permutations of the given size
-const findAllCombinations = (items, size) => {
+const findAllCombinations = (items, size, progressCounter) => {
   if (size === 0 || items.length < size) {
     return [];
   }
   if (size === 1) {
+    if (progressCounter) {
+      progressCounter(items.length);
+    }
     return items.map((item) => [item]);
   }
   if (size === items.length) {
+    if (progressCounter) {
+      progressCounter(1);
+    }
     return [items];
   }
 
   const tail = items.slice(1);
 
   // Find all perms that involve the first item
-  const headOnlyPerms = findAllCombinations(tail, size - 1).map((perm) => [
-    items[0],
-    ...perm,
-  ]);
+  const headOnlyPerms = findAllCombinations(
+    tail,
+    size - 1,
+    progressCounter
+  ).map((perm) => [items[0], ...perm]);
 
   // Find all perms that do not include the head
-  const tailPerms = findAllCombinations(tail, size);
+  const tailPerms = findAllCombinations(tail, size, progressCounter);
 
   return headOnlyPerms.concat(tailPerms);
+};
+
+const calcCombinationsCount = (items, size) => {
+  const factorial = (n) => {
+    if (n === 0) {
+      return 1;
+    }
+
+    return n * factorial(n - 1);
+  };
+
+  const n = items.length;
+
+  return factorial(n) / (factorial(size) * factorial(n - size));
 };
 
 const sleep = (ms) => {
@@ -116,10 +137,16 @@ const colorOutputText = (text, color) => {
   return `\x1b[${colorNum}m${text}\x1b[${defaultColorNumber}m`;
 };
 
+const numberWithCommas = (x) => {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
 module.exports = {
   findAllArrayPermutations,
   findAllCombinationsStringify,
   findAllCombinations,
+  calcCombinationsCount,
   sleep,
   colorOutputText,
+  numberWithCommas,
 };

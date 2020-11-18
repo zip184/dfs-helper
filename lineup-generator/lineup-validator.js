@@ -1,5 +1,5 @@
 const { allRules } = require("./rules");
-const { colorOutputText } = require("../utils");
+const { colorOutputText, numberWithCommas } = require("../utils");
 
 const outputStream = process.stdout;
 const updateProgressPeriod = 10000;
@@ -30,7 +30,9 @@ const runRules = (rules, contest, lineups) => {
 
     const removedCount = startSize - remainingLineups.length;
     outputStream.cursorTo(cursorPos);
-    outputStream.write(colorOutputText(`removed ${removedCount}\n`, "green"));
+    outputStream.write(
+      colorOutputText(`removed ${numberWithCommas(removedCount)}\n`, "green")
+    );
   });
 
   return remainingLineups;

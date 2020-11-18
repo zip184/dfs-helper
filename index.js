@@ -3,6 +3,7 @@ const { readPlayersCsv } = require("./load-players");
 const { generateAllValidLineups } = require("./lineup-generator");
 const { contest } = require("./dfs-helper.config");
 const { findTopNLineups } = require("./lineup-ranker");
+const { numberWithCommas } = require("./utils");
 
 const printIds = (label, players) =>
   console.log(
@@ -25,7 +26,9 @@ const main = async () => {
 
   const allLineups = await generateAllValidLineups(contest, players);
 
-  console.log(`Total lineups found: ${allLineups.length}`);
+  console.log(
+    `Total valid lineups found: ${numberWithCommas(allLineups.length)}`
+  );
 
   const topLineups = findTopNLineups(contest, allLineups, 5);
   topLineups.forEach(({ score, lineup }, i) =>
