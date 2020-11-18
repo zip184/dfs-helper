@@ -13,7 +13,8 @@ const playerRowKeyNames = [
   "avgPoints",
 ];
 
-const requiredPlayers = ["Aaron Jones", "Mike Davis", "Stefon Diggs"];
+// const requiredPlayers = ["Aaron Jones", "Mike Davis", "Stefon Diggs"];
+const requiredPlayers = [];
 
 module.exports = {
   playerRowKeyNames,

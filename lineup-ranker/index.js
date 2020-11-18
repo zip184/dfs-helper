@@ -6,8 +6,13 @@ const salaryRankScorrer = (lineup) =>
 const pointsAvgRankScorrer = (lineup) =>
   lineup.reduce((total, player) => total + +player.avgPoints, 0);
 
-const salaryAvgPpgScorrer = (lineup) =>
-  salaryRankScorrer(lineup) + pointsAvgRankScorrer(lineup);
+const salaryAvgPpgScorrer = (lineup) => {
+  const salary = salaryRankScorrer(lineup);
+  const ptsAvg = pointsAvgRankScorrer(lineup);
+
+  // Salary is roughly times a players points average, on average
+  return salary / 600 + ptsAvg;
+};
 
 const rankScorrer = salaryAvgPpgScorrer;
 
@@ -15,6 +20,8 @@ const findTopNLineups = (contest, allLineups, n, scorrer = rankScorrer) => {
   const scoredLineups = allLineups.map((lineup) => ({
     lineup,
     score: scorrer(lineup),
+    salary: salaryRankScorrer(lineup),
+    avgPoints: pointsAvgRankScorrer(lineup),
   }));
 
   scoredLineups.sort((lineA, lineB) => {

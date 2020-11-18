@@ -30,9 +30,14 @@ const main = async () => {
     `Total valid lineups found: ${numberWithCommas(allLineups.length)}`
   );
 
-  const topLineups = findTopNLineups(contest, allLineups, 5);
-  topLineups.forEach(({ score, lineup }, i) =>
-    printIds(`lineup rank #${i + 1} score: ${score}`, lineup)
+  const topLineups = findTopNLineups(contest, allLineups, 4);
+  topLineups.forEach(({ score, lineup, salary, avgPoints }, i) =>
+    printIds(
+      `lineup rank #${
+        i + 1
+      } score: ${score} salary: ${salary} avgPoints: ${avgPoints.toFixed(2)}`,
+      lineup
+    )
   );
 };
 
