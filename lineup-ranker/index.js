@@ -4,7 +4,16 @@ const salaryRankScorrer = (lineup) =>
   lineup.reduce((total, player) => total + +player.salary, 0);
 
 const pointsAvgRankScorrer = (lineup) =>
-  lineup.reduce((total, player) => total + +player.avgPoints, 0);
+  lineup.reduce((total, player) => {
+    const { avgPoints, multiplier } = player;
+    let score = +avgPoints;
+
+    if (multiplier) {
+      score *= multiplier;
+    }
+
+    return total + score;
+  }, 0);
 
 const salaryAvgPpgScorrer = (lineup) => {
   const salary = salaryRankScorrer(lineup);

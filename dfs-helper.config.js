@@ -11,6 +11,7 @@ const playerRowKeyNames = [
   "game",
   "team",
   "avgPoints",
+  "multiplier",
 ];
 
 // const requiredPlayers = ["Aaron Jones", "Mike Davis", "Stefon Diggs"];
