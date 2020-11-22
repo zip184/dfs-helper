@@ -1,5 +1,6 @@
 const { allRules } = require("./rules");
 const { colorOutputText, numberWithCommas } = require("../utils");
+const { saveCache } = require("../cache-db");
 
 const outputStream = process.stdout;
 const updateProgressPeriod = 10000;
@@ -8,7 +9,7 @@ const runRules = (rules, contest, lineups) => {
   let remainingLineups = lineups;
 
   rules.forEach((rule) => {
-    const { title, ruleFunction } = rule;
+    const { title, ruleFunction, usesCacheDb } = rule;
     const startSize = remainingLineups.length;
 
     const outputLine = `Checking: '${title}' on ${remainingLineups.length} lineups - `;
@@ -33,6 +34,11 @@ const runRules = (rules, contest, lineups) => {
     outputStream.write(
       colorOutputText(`removed ${numberWithCommas(removedCount)}\n`, "green")
     );
+
+    // Update cache
+    if (usesCacheDb) {
+      saveCache();
+    }
   });
 
   return remainingLineups;

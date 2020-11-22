@@ -4,6 +4,9 @@
   "description": "Bret's DFS lineup generator",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "clean:cache": "node reset-cache.js",
+    "start:clean": "npm run clean:cache && npm run start",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint '**/*.js'"
@@ -11,7 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "csv-parser": "^2.3.3"
+    "csv-parser": "^2.3.3",
+    "node-json-db": "^1.1.0"
   },
   "devDependencies": {
     "eslint": "^7.13.0",

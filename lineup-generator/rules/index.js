@@ -1,4 +1,8 @@
 const config = require("../../dfs-helper.config");
+const {
+  getRosterPositionsCache,
+  setRosterPositionsCache,
+} = require("../../cache-db");
 
 const {
   minSalaryThresholdPct: minSalaryPctConfig,
@@ -141,6 +145,25 @@ const hasRequiredPlayers = (_, lineup) => {
   return requiredPlayersConfig.every((name) => lineupNameSet.has(name));
 };
 
+const withLineupCacheCheck = (ruleFunction) => (contest, lineup) => {
+  // Check cache first
+  const cache = getRosterPositionsCache();
+  const serialized = JSON.stringify(lineup.map(({ playerId }) => playerId));
+  const cachedValue = cache[serialized];
+  if (cachedValue !== undefined) {
+    // Cache hit, return true/false
+    return cachedValue;
+  }
+
+  const hasCorrect = ruleFunction(contest, lineup);
+
+  // Save value in cache
+  cache[serialized] = hasCorrect;
+  setRosterPositionsCache(cache);
+
+  return hasCorrect;
+};
+
 module.exports = {
   allRules: [
     {
@@ -164,9 +187,10 @@ module.exports = {
       isDkValidationRule: false,
     },
     {
-      ruleFunction: correctPositionCounts,
+      ruleFunction: withLineupCacheCheck(correctPositionCounts),
       title: "Has Correct Position Counts",
       isDkValidationRule: true,
+      usesCacheDb: true,
     },
     {
       ruleFunction: hasRequiredPlayers,
