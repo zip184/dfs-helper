@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-const { readPlayersCsv } = require("./load-players");
-const { generateAllValidLineups } = require("./lineup-generator");
-const { contest } = require("./dfs-helper.config");
-const { findTopNLineups } = require("./lineup-ranker");
-const { numberWithCommas } = require("./utils");
+const { readPlayersCsv } = require("../load-players");
+const { generateAllValidLineups } = require("../lineup-generator");
+const { contest } = require("../../dfs-helper.config");
+const { findTopNLineups } = require("../lineup-ranker");
+const { numberWithCommas } = require("../utils");
 
 const printIds = (label, players) =>
   console.log(

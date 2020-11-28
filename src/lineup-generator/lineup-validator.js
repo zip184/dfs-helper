@@ -1,6 +1,6 @@
 const { allRules } = require("./rules");
 const { colorOutputText, numberWithCommas } = require("../utils");
-const { saveCache } = require("../cache-db");
+const { saveCache } = require("../../cache-db");
 
 const outputStream = process.stdout;
 const updateProgressPeriod = 10000;

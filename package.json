@@ -2,10 +2,10 @@
   "name": "dfs-helper",
   "version": "1.0.0",
   "description": "Bret's DFS lineup generator",
-  "main": "index.js",
+  "main": "src/scripts/main.js",
   "scripts": {
-    "start": "node index.js",
-    "clean:cache": "node reset-cache.js",
+    "start": "node src/scripts/main.js",
+    "clean:cache": "node src/scripts/reset-cache.js",
     "start:clean": "npm run clean:cache && npm run start",
     "test": "jest",
     "test:watch": "jest --watch",
