@@ -31,12 +31,13 @@ const main = async () => {
   );
 
   const topLineups = findTopNLineups(contest, allLineups, 4);
+
   topLineups.forEach(({ score, lineup, salary, avgPoints }, i) =>
     printIds(
       `lineup rank #${
         i + 1
       } score: ${score} salary: ${salary} avgPoints: ${avgPoints.toFixed(2)}`,
-      lineup
+      lineup.sort((a, b) => b.salary - a.salary)
     )
   );
 };

@@ -61,6 +61,7 @@ const correctPositionCounts = (
   skippedAssignmentSet = new Set()
 ) => {
   const { roster, playerCount } = contest;
+  const playerPositions = {};
 
   if (playerCount === 0 && lineup.length === 0) {
     // Empty lineup is correct for no positions
@@ -72,7 +73,7 @@ const correctPositionCounts = (
     return false;
   }
 
-  const pickedPositions = {};
+  const pickedPositionCounts = {};
   let pickedCount = 0;
   let lastHashToSkip = null;
 
@@ -85,7 +86,7 @@ const correctPositionCounts = (
       const pos = positions[posIndex];
 
       const rosterCount = roster[pos] || 0;
-      const curPosCount = pickedPositions[pos] || 0;
+      const curPosCount = pickedPositionCounts[pos] || 0;
 
       // Check if the position is open
       if (rosterCount - curPosCount > 0) {
@@ -102,12 +103,13 @@ const correctPositionCounts = (
         }
 
         pickedPos = pos;
-        pickedPositions[pos] = curPosCount + 1;
+        playerPositions[player.playerId] = pos;
+        pickedPositionCounts[pos] = curPosCount + 1;
         pickedCount++;
 
         if (pickedCount === playerCount) {
           // We've found a valid lineup configuration!
-          return true;
+          return playerPositions;
         }
 
         // We've chosen this position, move into the next player
