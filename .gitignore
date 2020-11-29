@@ -1,2 +1,4 @@
 node_modules/
+build/
 input-data/
+cache-db/
