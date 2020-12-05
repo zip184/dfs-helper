@@ -15,4 +15,11 @@ module.exports = {
     "no-labels": [0],
     "no-continue": [0],
   },
+  settings: {
+    "import/resolver": {
+      node: {
+        extensions: [".js", ".ts"],
+      },
+    },
+  },
 };

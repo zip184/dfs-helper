@@ -2,7 +2,7 @@ const config = require("../../../dfs-helper.config");
 const {
   getRosterPositionsCache,
   setRosterPositionsCache,
-} = require("../../../cache-db");
+} = require("../../cache-db");
 
 const {
   minSalaryThresholdPct: minSalaryPctConfig,
