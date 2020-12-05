@@ -1,55 +1,58 @@
 // Finds all array permutations, including different orders
 // No longer used since removing duplicates later is slow
-const findAllArrayPermutations = (items, maxSize) => {
+export const findAllArrayPermutations = <T>(items: T[], maxSize: number) => {
   const permSize = maxSize < items.length ? maxSize : items.length;
 
   // Base cases
   if (permSize === 1) {
-    return items.map((p) => [p]);
+    return items.map((p: T) => [p]);
   }
   if (permSize === 0) {
     return [];
   }
 
-  const allSubPerms = [];
+  const allSubPerms: T[][] = [];
 
-  items.forEach((item) => {
-    const restOfItems = items.filter((p) => p !== item);
+  items.forEach((item: T) => {
+    const restOfItems = items.filter((p: T) => p !== item);
     const subPerms = findAllArrayPermutations(restOfItems, permSize - 1);
 
-    subPerms.forEach((subPerm) => allSubPerms.push([item, ...subPerm]));
+    subPerms.forEach((subPerm: T[]) => allSubPerms.push([item, ...subPerm]));
   });
 
   return allSubPerms;
 };
 
 // Not currently longer used since it's many times slower than findAllCombinations
-const findAllCombinationsStringify = (items, permSize) => {
+export const findAllCombinationsStringify = <T>(items: T[], permSize: number): T[][] => {
   // Base cases
   if (permSize === 1) {
-    return items.map((p) => [p]);
+    return items.map((p: T) => [p]);
   }
   if (permSize === 0) {
     return [];
   }
 
-  const allSubPerms = new Set();
+  const allSubPerms: Set<string> = new Set();
 
-  items.forEach((item) => {
-    const restOfItems = items.filter((p) => p !== item);
+  items.forEach((item: T) => {
+    const restOfItems = items.filter((p: T) => p !== item);
     const subPerms = findAllArrayPermutations(restOfItems, permSize - 1);
 
-    subPerms.forEach((subPerm) => {
+    subPerms.forEach((subPerm: T[]) => {
       const combined = JSON.stringify([item, ...subPerm].sort());
       allSubPerms.add(combined);
     });
   });
 
+  // TODO TS get spread workin
   return [...allSubPerms].map((perm) => JSON.parse(perm));
 };
 
+export type ProgressCounter = (progressInc: number) => void;
+
 // Finds all "set unique" array permutations of the given size
-const findAllCombinations = (items, size, progressCounter) => {
+export const findAllCombinations = <T>(items: T[], size: number, progressCounter?: ProgressCounter) => {
   if (size === 0 || items.length < size) {
     return [];
   }
@@ -57,7 +60,7 @@ const findAllCombinations = (items, size, progressCounter) => {
     if (progressCounter) {
       progressCounter(items.length);
     }
-    return items.map((item) => [item]);
+    return items.map((item: T) => [item]);
   }
   if (size === items.length) {
     if (progressCounter) {
@@ -69,20 +72,20 @@ const findAllCombinations = (items, size, progressCounter) => {
   const tail = items.slice(1);
 
   // Find all perms that involve the first item
-  const headOnlyPerms = findAllCombinations(
+  const headOnlyPerms: T[][] = findAllCombinations(
     tail,
     size - 1,
     progressCounter
-  ).map((perm) => [items[0], ...perm]);
+  ).map((perm: T[]) => [items[0], ...perm]);
 
   // Find all perms that do not include the head
-  const tailPerms = findAllCombinations(tail, size, progressCounter);
+  const tailPerms: T[][] = findAllCombinations(tail, size, progressCounter);
 
   return headOnlyPerms.concat(tailPerms);
 };
 
-const calcCombinationsCount = (items, size) => {
-  const factorial = (n) => {
+export const calcCombinationsCount = <T>(items: T[], size: number) => {
+  const factorial = (n: number): number => {
     if (n === 0) {
       return 1;
     }
@@ -95,13 +98,15 @@ const calcCombinationsCount = (items, size) => {
   return factorial(n) / (factorial(size) * factorial(n - size));
 };
 
-const sleep = (ms) => {
+export const sleep = (ms: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 };
 
-const colorOutputText = (text, color) => {
+// TODO TS Enum here
+
+export const colorOutputText = (text: string, color: string) => {
   const defaultColorNumber = 37; // white
   let colorNum;
 
@@ -137,16 +142,6 @@ const colorOutputText = (text, color) => {
   return `\x1b[${colorNum}m${text}\x1b[${defaultColorNumber}m`;
 };
 
-const numberWithCommas = (x) => {
+export const numberWithCommas = (x: number) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-};
-
-module.exports = {
-  findAllArrayPermutations,
-  findAllCombinationsStringify,
-  findAllCombinations,
-  calcCombinationsCount,
-  sleep,
-  colorOutputText,
-  numberWithCommas,
 };

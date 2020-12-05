@@ -1,10 +1,16 @@
-const {
+import {
   findAllArrayPermutations,
   findAllCombinationsStringify,
   findAllCombinations,
-} = require("../index");
+  ProgressCounter
+} from '../index';
 
-const runCommonTests = (testFunction) => {
+
+
+
+type CommonPermuntationFunction<T> = (items: T[], maxSize: number, progressCounter?: ProgressCounter) => T[];
+
+const runCommonTests = (testFunction: CommonPermuntationFunction<any>) => {
   it("empty cases", () => {
     expect(testFunction([], 0)).toEqual([]);
     expect(testFunction([], 1)).toEqual([]);
@@ -37,7 +43,7 @@ const runCommonTests = (testFunction) => {
   });
 };
 
-const runUniqueTests = (testFunction) => {
+const runUniqueTests = (testFunction: CommonPermuntationFunction<any>) => {
   it("2 items 2 length", () => {
     const items = [2, 3];
     const allPerms = testFunction(items, 2);
