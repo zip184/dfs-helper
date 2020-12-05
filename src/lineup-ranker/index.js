@@ -16,11 +16,12 @@ const pointsAvgRankScorrer = (lineup) =>
   }, 0);
 
 const salaryAvgPpgScorrer = (lineup) => {
-  const salary = salaryRankScorrer(lineup);
+  // const salary = salaryRankScorrer(lineup);
   const ptsAvg = pointsAvgRankScorrer(lineup);
 
   // Salary is roughly times a players points average, on average
-  return salary / 600 + ptsAvg;
+  // return salary / 600 + ptsAvg;
+  return ptsAvg;
 };
 
 const rankScorrer = salaryAvgPpgScorrer;
