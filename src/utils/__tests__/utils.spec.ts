@@ -2,13 +2,15 @@ import {
   findAllArrayPermutations,
   findAllCombinationsStringify,
   findAllCombinations,
-  ProgressCounter
-} from '../index';
+  ProgressCounter,
+  factorial,
+} from "../index";
 
-
-
-
-type CommonPermuntationFunction<T> = (items: T[], maxSize: number, progressCounter?: ProgressCounter) => T[];
+type CommonPermuntationFunction<T> = (
+  items: T[],
+  maxSize: number,
+  progressCounter?: ProgressCounter
+) => T[];
 
 const runCommonTests = (testFunction: CommonPermuntationFunction<any>) => {
   it("empty cases", () => {
@@ -102,5 +104,20 @@ describe("utils", () => {
   describe("findAllCombinationsStringify function", () => {
     runCommonTests(findAllCombinations);
     runUniqueTests(findAllCombinations);
+  });
+
+  describe("factorial", () => {
+    it("1 - 10", () => {
+      expect(factorial(1)).toEqual(1);
+      expect(factorial(2)).toEqual(2);
+      expect(factorial(3)).toEqual(6);
+      expect(factorial(4)).toEqual(24);
+      expect(factorial(5)).toEqual(120);
+      expect(factorial(6)).toEqual(720);
+      expect(factorial(7)).toEqual(5040);
+      expect(factorial(8)).toEqual(40320);
+      expect(factorial(9)).toEqual(362880);
+      expect(factorial(10)).toEqual(3628800);
+    });
   });
 });

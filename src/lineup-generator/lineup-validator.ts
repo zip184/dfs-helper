@@ -1,11 +1,15 @@
-const { allRules } = require("./rules");
-const { colorOutputText, numberWithCommas } = require("../utils");
-const { saveCache } = require("../cache-db");
+import { allRules } from "./rules";
+import { colorOutputText, numberWithCommas } from "../utils";
+import { saveCache } from "../cache-db";
 
 const outputStream = process.stdout;
 const updateProgressPeriod = 10000;
 
-const runRules = (rules, contest, lineups) => {
+const runRules = (
+  rules: LineupRule[],
+  contest: Contest,
+  lineups: Player[][]
+) => {
   let remainingLineups = lineups;
 
   rules.forEach((rule) => {
@@ -17,7 +21,7 @@ const runRules = (rules, contest, lineups) => {
 
     outputStream.write(outputLine);
 
-    remainingLineups = remainingLineups.filter((lineup, i) => {
+    remainingLineups = remainingLineups.filter((lineup: Player[], i) => {
       const passed = ruleFunction(contest, lineup);
 
       if (i % updateProgressPeriod === 0) {
@@ -44,7 +48,7 @@ const runRules = (rules, contest, lineups) => {
   return remainingLineups;
 };
 
-const getPassingLineups = (contest, lineups) => {
+export const getPassingLineups = (contest: Contest, lineups: Player[][]) => {
   let validLineups = lineups;
 
   const validationRules = allRules.filter((rule) => rule.isDkValidationRule);
@@ -54,8 +58,4 @@ const getPassingLineups = (contest, lineups) => {
   validLineups = runRules(configRules, contest, validLineups);
 
   return validLineups;
-};
-
-module.exports = {
-  getPassingLineups,
 };

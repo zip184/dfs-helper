@@ -1,127 +1,195 @@
-const {
+import {
   fitsSalaryCap,
   fitsMinSalaryPct,
   underMaxRemainingSalary,
   correctPositionCounts,
   hasTwoDifferentGames,
-} = require("../index");
+} from "../index";
 
-const createContest = (roster) => ({
-  roster,
-  playerCount: Object.values(roster).reduce((total, val) => total + val, 0),
+const createPlayer = (fields: object): Player => ({
+  playerId: 0,
+  rosterPositions: [],
+  position: "",
+  name: "",
+  salary: 0,
+  game: "",
+  team: "",
+  avgPoints: 0,
+  multiplier: 0,
+  ...fields,
 });
 
-const createPlayers = (...positions) =>
-  positions.map((pos, i) => ({
-    playerId: i + 1,
-    rosterPositions: pos,
-  }));
+const createPlayers = (...positions: string[]): Player[] =>
+  positions.map((pos, i) => {
+    const player = createPlayer({ playerId: i });
+    player.position = pos;
+    player.rosterPositions = pos.split("/");
+    return player;
+  });
 
 describe("validation rules", () => {
   describe("fitsSalaryCap", () => {
+    const createContest = (maxSalary: number): Contest => ({
+      roster: new Map(),
+      playerCount: 0,
+      maxSalary,
+    });
+
     it("empty tests", () => {
-      expect(fitsSalaryCap({ maxSalary: 0 }, [], 1)).toBeTruthy();
-      expect(fitsSalaryCap({ maxSalary: 100 }, [], 1)).toBeTruthy();
-      expect(fitsSalaryCap({ maxSalary: -1 }, [], 1)).not.toBeTruthy();
+      expect(fitsSalaryCap(createContest(0), [])).toBeTruthy();
+      expect(fitsSalaryCap(createContest(100), [])).toBeTruthy();
+      expect(fitsSalaryCap(createContest(-1), [])).not.toBeTruthy();
     });
 
     it("single player", () => {
-      expect(fitsSalaryCap({ maxSalary: 10 }, [{ salary: 5 }], 1)).toBeTruthy();
-      expect(fitsSalaryCap({ maxSalary: 5 }, [{ salary: 5 }], 1)).toBeTruthy();
       expect(
-        fitsSalaryCap({ maxSalary: 500 }, [{ salary: 501 }], 1)
+        fitsSalaryCap(createContest(10), [createPlayer({ salary: 5 })])
+      ).toBeTruthy();
+      expect(
+        fitsSalaryCap(createContest(5), [createPlayer({ salary: 5 })])
+      ).toBeTruthy();
+      expect(
+        fitsSalaryCap(createContest(500), [createPlayer({ salary: 501 })])
       ).not.toBeTruthy();
     });
 
     it("multiple players", () => {
       expect(
-        fitsSalaryCap(
-          { maxSalary: 50 },
-          [{ salary: 10 }, { salary: 10 }, { salary: 10 }],
-          1
-        )
+        fitsSalaryCap(createContest(50), [
+          createPlayer({ salary: 10 }),
+          createPlayer({ salary: 10 }),
+          createPlayer({ salary: 10 }),
+        ])
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(
-          { maxSalary: 60 },
-          [{ salary: 20 }, { salary: 30 }, { salary: 10 }],
-          1
-        )
+        fitsSalaryCap(createContest(60), [
+          createPlayer({ salary: 20 }),
+          createPlayer({ salary: 30 }),
+          createPlayer({ salary: 10 }),
+        ])
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(
-          { maxSalary: 800 },
-          [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
-          1
-        )
+        fitsSalaryCap(createContest(800), [
+          createPlayer({ salary: 100 }),
+          createPlayer({ salary: 500 }),
+          createPlayer({ salary: 200 }),
+        ])
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(
-          { maxSalary: 799 },
-          [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
-          1
-        )
+        fitsSalaryCap(createContest(799), [
+          createPlayer({ salary: 100 }),
+          createPlayer({ salary: 500 }),
+          createPlayer({ salary: 200 }),
+        ])
       ).not.toBeTruthy();
 
       expect(
-        fitsSalaryCap(
-          { maxSalary: 500 },
-          [{ salary: 100 }, { salary: 500 }, { salary: 200 }],
-          1
-        )
+        fitsSalaryCap(createContest(500), [
+          createPlayer({ salary: 100 }),
+          createPlayer({ salary: 500 }),
+          createPlayer({ salary: 200 }),
+        ])
       ).not.toBeTruthy();
     });
   });
 
   describe("fitsMinSalaryPct", () => {
+    const createContest = (maxSalary: number): Contest => ({
+      roster: new Map(),
+      playerCount: 0,
+      maxSalary,
+    });
+
     it("test percent threshold", () => {
       // Less fails
       expect(
-        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 60 }], 0.7)
+        fitsMinSalaryPct(
+          createContest(100),
+          [createPlayer({ salary: 60 })],
+          0.7
+        )
       ).not.toBeTruthy();
 
       // Same passes
       expect(
-        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 70 }], 0.7)
+        fitsMinSalaryPct(
+          createContest(100),
+          [createPlayer({ salary: 70 })],
+          0.7
+        )
       ).toBeTruthy();
 
       // Over passes
       expect(
-        fitsMinSalaryPct({ maxSalary: 100 }, [{ salary: 80 }], 0.7)
+        fitsMinSalaryPct(
+          createContest(100),
+          [createPlayer({ salary: 80 })],
+          0.7
+        )
       ).toBeTruthy();
     });
   });
 
   describe("underMaxRemainingSalary", () => {
+    const createContest = (maxSalary: number): Contest => ({
+      roster: new Map(),
+      playerCount: 0,
+      maxSalary,
+    });
+
     it("test max salary threshold", () => {
       // More fails
       expect(
-        underMaxRemainingSalary({ maxSalary: 100 }, [{ salary: 80 }], 10)
+        underMaxRemainingSalary(
+          createContest(100),
+          [createPlayer({ salary: 80 })],
+          10
+        )
       ).not.toBeTruthy();
 
       // Same passes
       expect(
-        underMaxRemainingSalary({ maxSalary: 1000 }, [{ salary: 800 }], 200)
+        underMaxRemainingSalary(
+          createContest(1000),
+          [createPlayer({ salary: 800 })],
+          200
+        )
       ).toBeTruthy();
       expect(
         underMaxRemainingSalary(
-          { maxSalary: 100 },
-          [{ salary: 50 }, { salary: 50 }],
+          createContest(100),
+          [createPlayer({ salary: 50 }), createPlayer({ salary: 50 })],
           0
         )
       ).toBeTruthy();
 
       // Less passes
       expect(
-        underMaxRemainingSalary({ maxSalary: 100 }, [{ salary: 90 }], 20)
+        underMaxRemainingSalary(
+          createContest(100),
+          [createPlayer({ salary: 90 })],
+          20
+        )
       ).toBeTruthy();
     });
   });
 
   describe("correctPositionCounts", () => {
+    const createContest = (positions: object): Contest => {
+      const roster = new Map<string, number>(Object.entries(positions));
+      return {
+        roster,
+        playerCount: Object.values(positions).reduce(
+          (total, val) => total + val,
+          0
+        ),
+        maxSalary: 0,
+      };
+    };
+
     it("empty cases", () => {
       expect(correctPositionCounts(createContest({}), [])).toBeTruthy();
 
@@ -360,100 +428,108 @@ describe("validation rules", () => {
   });
 
   describe("hasTwoDifferentGames", () => {
+    const contest: Contest = {
+      roster: new Map(),
+      playerCount: 0,
+      maxSalary: 0,
+    };
+
     it("Empty case", () => {
-      expect(hasTwoDifferentGames({}, [])).not.toBeTruthy();
+      expect(hasTwoDifferentGames(contest, [])).not.toBeTruthy();
     });
 
     it("Single game fails", () => {
       expect(
-        hasTwoDifferentGames({}, [{ game: "CHI@TEN 11/08/2020 01:00PM ET" }])
-      ).not.toBeTruthy();
-
-      expect(
-        hasTwoDifferentGames({}, [
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "CHI@TEN 11/08/2020 01:00PM ET" }),
         ])
       ).not.toBeTruthy();
 
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "x" },
-          { game: "x" },
-          { game: "x" },
-          { game: "x" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+        ])
+      ).not.toBeTruthy();
+
+      expect(
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
         ])
       ).not.toBeTruthy();
     });
 
-    it.only("Two games passes", () => {
+    it("Two games passes", () => {
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "CHI@TEN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "CHI@TEN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
         ])
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "DET@MIN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
-          { game: "DET@MIN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
         ])
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "x" },
-          { game: "y" },
-          { game: "y" },
-          { game: "x" },
-          { game: "x" },
-          { game: "x" },
-          { game: "y" },
-          { game: "y" },
-          { game: "y" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "y" }),
         ])
       ).toBeTruthy();
     });
 
     it("More games passes", () => {
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "DET@MIN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
-          { game: "DET@MIN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
-          { game: "HOU@JAX 11/08/2020 01:00PM ET" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+          createPlayer({ game: "HOU@JAX 11/08/2020 01:00PM ET" }),
         ])
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "DET@MIN 11/08/2020 01:00PM ET" },
-          { game: "PIT@DAL 11/08/2020 04:25PM ET" },
-          { game: "DEN@ATL 11/08/2020 01:00PM ET" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
+          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
+          createPlayer({ game: "DEN@ATL 11/08/2020 01:00PM ET" }),
         ])
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames({}, [
-          { game: "x" },
-          { game: "y" },
-          { game: "x" },
-          { game: "x" },
-          { game: "z" },
-          { game: "x" },
-          { game: "y" },
-          { game: "a" },
-          { game: "b" },
-          { game: "x" },
-          { game: "x" },
-          { game: "z" },
-          { game: "x" },
-          { game: "y" },
-          { game: "x" },
+        hasTwoDifferentGames(contest, [
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "z" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "a" }),
+          createPlayer({ game: "b" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "z" }),
+          createPlayer({ game: "x" }),
+          createPlayer({ game: "y" }),
+          createPlayer({ game: "x" }),
         ])
       ).toBeTruthy();
     });

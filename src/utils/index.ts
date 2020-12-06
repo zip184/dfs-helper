@@ -24,7 +24,10 @@ export const findAllArrayPermutations = <T>(items: T[], maxSize: number) => {
 };
 
 // Not currently longer used since it's many times slower than findAllCombinations
-export const findAllCombinationsStringify = <T>(items: T[], permSize: number): T[][] => {
+export const findAllCombinationsStringify = <T>(
+  items: T[],
+  permSize: number
+): T[][] => {
   // Base cases
   if (permSize === 1) {
     return items.map((p: T) => [p]);
@@ -52,7 +55,11 @@ export const findAllCombinationsStringify = <T>(items: T[], permSize: number): T
 export type ProgressCounter = (progressInc: number) => void;
 
 // Finds all "set unique" array permutations of the given size
-export const findAllCombinations = <T>(items: T[], size: number, progressCounter?: ProgressCounter) => {
+export const findAllCombinations = <T>(
+  items: T[],
+  size: number,
+  progressCounter?: ProgressCounter
+) => {
   if (size === 0 || items.length < size) {
     return [];
   }
@@ -85,16 +92,7 @@ export const findAllCombinations = <T>(items: T[], size: number, progressCounter
 };
 
 export const calcCombinationsCount = <T>(items: T[], size: number) => {
-  const factorial = (n: number): number => {
-    if (n === 0) {
-      return 1;
-    }
-
-    return n * factorial(n - 1);
-  };
-
   const n = items.length;
-
   return factorial(n) / (factorial(size) * factorial(n - size));
 };
 
@@ -144,4 +142,16 @@ export const colorOutputText = (text: string, color: string) => {
 
 export const numberWithCommas = (x: number) => {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+export const factorial = (n: number): number => {
+  let result = 1;
+  let curNum = n;
+
+  while (curNum > 1) {
+    result *= curNum;
+    curNum--;
+  }
+
+  return result;
 };

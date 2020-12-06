@@ -1,21 +1,19 @@
-const config = require("../../../dfs-helper.config");
-const {
+import {
+  minSalaryThresholdPct as minSalaryPctConfig,
+  maxRemainingSalaryThreshold as maxRemainingSalaryConfig,
+  requiredPlayers as requiredPlayersConfig,
+} from "../../../dfs-helper.config";
+import {
   getRosterPositionsCache,
   setRosterPositionsCache,
-} = require("../../cache-db");
+} from "../../cache-db";
 
-const {
-  minSalaryThresholdPct: minSalaryPctConfig,
-  maxRemainingSalaryThreshold: maxRemainingSalaryConfig,
-  requiredPlayers: requiredPlayersConfig,
-} = config;
+const totalLineupSalary = (lineup: Player[]) =>
+  lineup.reduce((total: number, player: Player) => total + +player.salary, 0);
 
-const totalLineupSalary = (lineup) =>
-  lineup.reduce((total, { salary }) => total + +salary, 0);
-
-const fitsMinSalaryPct = (
-  contest,
-  lineup,
+export const fitsMinSalaryPct = (
+  contest: Contest,
+  lineup: Player[],
   minSalaryPct = minSalaryPctConfig // Param just for testing
 ) => {
   if (!minSalaryPct || minSalaryPct <= 0) {
@@ -29,9 +27,9 @@ const fitsMinSalaryPct = (
   return totalSalary / maxSalary >= minSalaryPct;
 };
 
-const underMaxRemainingSalary = (
-  contest,
-  lineup,
+export const underMaxRemainingSalary = (
+  contest: Contest,
+  lineup: Player[],
   maxRemainingSalary = maxRemainingSalaryConfig // Param just for testing
 ) => {
   if (!maxRemainingSalary || maxRemainingSalary <= 0) {
@@ -45,7 +43,7 @@ const underMaxRemainingSalary = (
   return maxSalary - totalSalary <= maxRemainingSalary;
 };
 
-const fitsSalaryCap = (contest, lineup) => {
+export const fitsSalaryCap = (contest: Contest, lineup: Player[]) => {
   const { maxSalary } = contest;
 
   const totalSalary = lineup.reduce((total, { salary }) => total + +salary, 0);
@@ -53,40 +51,38 @@ const fitsSalaryCap = (contest, lineup) => {
   return totalSalary <= maxSalary;
 };
 
-const getPlayerPositions = ({ rosterPositions }) => rosterPositions.split("/");
-
-const correctPositionCounts = (
-  contest,
-  lineup,
+export const correctPositionCounts = (
+  contest: Contest,
+  lineup: Player[],
   skippedAssignmentSet = new Set()
-) => {
+): Map<number, string> | null => {
   const { roster, playerCount } = contest;
-  const playerPositions = {};
+  const playerPositions = new Map<number, string>();
 
   if (playerCount === 0 && lineup.length === 0) {
     // Empty lineup is correct for no positions
-    return true;
+    return playerPositions;
   }
 
   if (playerCount !== lineup.length) {
     // Too little or too many players, fails
-    return false;
+    return null;
   }
 
-  const pickedPositionCounts = {};
+  const pickedPositionCounts = new Map<string, number>();
   let pickedCount = 0;
   let lastHashToSkip = null;
 
   for (let lineupIndex = 0; lineupIndex < lineup.length; lineupIndex++) {
     const player = lineup[lineupIndex];
-    const positions = getPlayerPositions(player);
+    const positions = player.rosterPositions;
     let pickedPos = null;
 
     for (let posIndex = 0; posIndex < positions.length; posIndex++) {
       const pos = positions[posIndex];
 
-      const rosterCount = roster[pos] || 0;
-      const curPosCount = pickedPositionCounts[pos] || 0;
+      const rosterCount = roster.get(pos) || 0;
+      const curPosCount = pickedPositionCounts.get(pos) || 0;
 
       // Check if the position is open
       if (rosterCount - curPosCount > 0) {
@@ -103,8 +99,8 @@ const correctPositionCounts = (
         }
 
         pickedPos = pos;
-        playerPositions[player.playerId] = pos;
-        pickedPositionCounts[pos] = curPosCount + 1;
+        playerPositions.set(player.playerId, pos);
+        pickedPositionCounts.set(pos, curPosCount + 1);
         pickedCount++;
 
         if (pickedCount === playerCount) {
@@ -126,7 +122,7 @@ const correctPositionCounts = (
   // We did not find valid configuration
   if (!lastHashToSkip) {
     // We know there were no more optional positions to try so we know this lineup failed
-    return false;
+    return null;
   }
 
   // There's more configurations to try
@@ -134,20 +130,23 @@ const correctPositionCounts = (
   return correctPositionCounts(contest, lineup, skippedAssignmentSet);
 };
 
-const hasTwoDifferentGames = (contest, lineup) => {
+export const hasTwoDifferentGames = (_: Contest, lineup: Player[]) => {
   const gameSet = new Set();
-  lineup.forEach((player) => gameSet.add(player.game));
+  lineup.forEach((player: Player) => gameSet.add(player.game));
   return gameSet.size >= 2;
 };
 
-const hasRequiredPlayers = (_, lineup) => {
+export const hasRequiredPlayers = (_: any, lineup: Player[]) => {
   const lineupNameSet = new Set();
   lineup.forEach(({ name }) => lineupNameSet.add(name));
 
   return requiredPlayersConfig.every((name) => lineupNameSet.has(name));
 };
 
-const withLineupCacheCheck = (ruleFunction) => (contest, lineup) => {
+const withLineupCacheCheck = (ruleFunction: RuleFunction) => (
+  contest: Contest,
+  lineup: Player[]
+) => {
   // Check cache first
   const cache = getRosterPositionsCache();
   const serialized = JSON.stringify(lineup.map(({ playerId }) => playerId));
@@ -166,44 +165,36 @@ const withLineupCacheCheck = (ruleFunction) => (contest, lineup) => {
   return hasCorrect;
 };
 
-module.exports = {
-  allRules: [
-    {
-      ruleFunction: fitsSalaryCap,
-      title: "Doesn't Exceed Salary Cap",
-      isDkValidationRule: true,
-    },
-    {
-      ruleFunction: hasTwoDifferentGames,
-      title: "At Least Two Games",
-      isDkValidationRule: true,
-    },
-    {
-      ruleFunction: fitsMinSalaryPct,
-      title: "Salary Meets Minimum Salary Threshold",
-      isDkValidationRule: false,
-    },
-    {
-      ruleFunction: underMaxRemainingSalary,
-      title: "Is Below Remaining Salary Limit",
-      isDkValidationRule: false,
-    },
-    {
-      ruleFunction: withLineupCacheCheck(correctPositionCounts),
-      title: "Has Correct Position Counts",
-      isDkValidationRule: true,
-      usesCacheDb: true,
-    },
-    {
-      ruleFunction: hasRequiredPlayers,
-      title: "Contains all required players",
-      isDkValidationRule: false,
-    },
-  ],
-  correctPositionCounts,
-  fitsSalaryCap,
-  fitsMinSalaryPct,
-  underMaxRemainingSalary,
-  hasTwoDifferentGames,
-  hasRequiredPlayers,
-};
+export const allRules: LineupRule[] = [
+  {
+    ruleFunction: fitsSalaryCap,
+    title: "Doesn't Exceed Salary Cap",
+    isDkValidationRule: true,
+  },
+  {
+    ruleFunction: hasTwoDifferentGames,
+    title: "At Least Two Games",
+    isDkValidationRule: true,
+  },
+  {
+    ruleFunction: fitsMinSalaryPct,
+    title: "Salary Meets Minimum Salary Threshold",
+    isDkValidationRule: false,
+  },
+  {
+    ruleFunction: underMaxRemainingSalary,
+    title: "Is Below Remaining Salary Limit",
+    isDkValidationRule: false,
+  },
+  {
+    ruleFunction: withLineupCacheCheck(correctPositionCounts),
+    title: "Has Correct Position Counts",
+    isDkValidationRule: true,
+    usesCacheDb: true,
+  },
+  {
+    ruleFunction: hasRequiredPlayers,
+    title: "Contains all required players",
+    isDkValidationRule: false,
+  },
+];

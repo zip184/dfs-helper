@@ -1,4 +1,4 @@
 // Script to reset the rules cache DB
-const { clearCache } = require("../cache-db");
+import { clearCache } from "../cache-db";
 
 clearCache();

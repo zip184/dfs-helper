@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
-const { readPlayersCsv } = require("../load-players");
-const { generateAllValidLineups } = require("../lineup-generator");
-const { contest } = require("../../dfs-helper.config");
-const { findTopNLineups } = require("../lineup-ranker");
-const { numberWithCommas } = require("../utils");
+import { readPlayersCsv } from "../load-players";
+import { generateAllValidLineups } from "../lineup-generator";
+import { contest } from "../../dfs-helper.config";
+import { findTopNLineups } from "../lineup-ranker";
+import { numberWithCommas } from "../utils";
 
-const printIds = (label, players) =>
+const printIds = (label: string, players: Player[]) =>
   console.log(
     label,
     players.map((p) => `${p.position} ${p.name} ${p.salary}`)
@@ -32,14 +32,16 @@ const main = async () => {
 
   const topLineups = findTopNLineups(contest, allLineups, 4);
 
-  topLineups.forEach(({ score, lineup, salary, avgPoints }, i) =>
+  topLineups.forEach((lineup: Lineup, i: number) => {
+    const { score, players, salary, avgPoints } = lineup;
+
     printIds(
       `lineup rank #${
         i + 1
       } score: ${score} salary: ${salary} avgPoints: ${avgPoints.toFixed(2)}`,
-      lineup.sort((a, b) => b.salary - a.salary)
-    )
-  );
+      players.sort((a: Player, b: Player) => b.salary - a.salary)
+    );
+  });
 };
 
 main().catch((err) => console.error("Error occured in main script:", err));
