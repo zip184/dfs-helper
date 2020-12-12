@@ -9,6 +9,19 @@ import { getPassingLineups } from "./lineup-validator";
 const updateProgressPeriod = 10000;
 const outputStream = process.stdout;
 
+export const populateLineup = (players: Player[]): Lineup =>
+  <Lineup>{
+    players,
+    score: players.reduce<number>(
+      (totalScore, player) => totalScore + player.avgPoints,
+      0
+    ),
+    salary: players.reduce<number>(
+      (totalSalary, player) => totalSalary + player.salary,
+      0
+    ),
+  };
+
 const getAllLineups = (contest: Contest, players: Player[]) => {
   const loadingMsg = "Finding all possible player combinations ";
   const cursorPos = loadingMsg.length;
@@ -37,7 +50,7 @@ const getAllLineups = (contest: Contest, players: Player[]) => {
     )
   );
 
-  return allCombos;
+  return allCombos.map(populateLineup);
 };
 
 export const generateAllValidLineups = (

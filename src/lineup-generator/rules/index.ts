@@ -8,12 +8,15 @@ import {
   setRosterPositionsCache,
 } from "../../cache-db";
 
-const totalLineupSalary = (lineup: Player[]) =>
-  lineup.reduce((total: number, player: Player) => total + +player.salary, 0);
+const totalLineupSalary = (lineup: Lineup) =>
+  lineup.players.reduce(
+    (total: number, player: Player) => total + +player.salary,
+    0
+  );
 
 export const fitsMinSalaryPct = (
   contest: Contest,
-  lineup: Player[],
+  lineup: Lineup,
   minSalaryPct = minSalaryPctConfig // Param just for testing
 ) => {
   if (!minSalaryPct || minSalaryPct <= 0) {
@@ -29,7 +32,7 @@ export const fitsMinSalaryPct = (
 
 export const underMaxRemainingSalary = (
   contest: Contest,
-  lineup: Player[],
+  lineup: Lineup,
   maxRemainingSalary = maxRemainingSalaryConfig // Param just for testing
 ) => {
   if (!maxRemainingSalary || maxRemainingSalary <= 0) {
@@ -43,28 +46,31 @@ export const underMaxRemainingSalary = (
   return maxSalary - totalSalary <= maxRemainingSalary;
 };
 
-export const fitsSalaryCap = (contest: Contest, lineup: Player[]) => {
+export const fitsSalaryCap = (contest: Contest, lineup: Lineup) => {
   const { maxSalary } = contest;
 
-  const totalSalary = lineup.reduce((total, { salary }) => total + +salary, 0);
+  const totalSalary = lineup.players.reduce(
+    (total, { salary }) => total + +salary,
+    0
+  );
 
   return totalSalary <= maxSalary;
 };
 
 export const correctPositionCounts = (
   contest: Contest,
-  lineup: Player[],
+  lineup: Lineup,
   skippedAssignmentSet = new Set()
 ): Map<number, string> | null => {
   const { roster, playerCount } = contest;
   const playerPositions = new Map<number, string>();
 
-  if (playerCount === 0 && lineup.length === 0) {
+  if (playerCount === 0 && lineup.players.length === 0) {
     // Empty lineup is correct for no positions
     return playerPositions;
   }
 
-  if (playerCount !== lineup.length) {
+  if (playerCount !== lineup.players.length) {
     // Too little or too many players, fails
     return null;
   }
@@ -73,8 +79,12 @@ export const correctPositionCounts = (
   let pickedCount = 0;
   let lastHashToSkip = null;
 
-  for (let lineupIndex = 0; lineupIndex < lineup.length; lineupIndex++) {
-    const player = lineup[lineupIndex];
+  for (
+    let lineupIndex = 0;
+    lineupIndex < lineup.players.length;
+    lineupIndex++
+  ) {
+    const player = lineup.players[lineupIndex];
     const positions = player.rosterPositions;
     let pickedPos = null;
 
@@ -130,26 +140,30 @@ export const correctPositionCounts = (
   return correctPositionCounts(contest, lineup, skippedAssignmentSet);
 };
 
-export const hasTwoDifferentGames = (_: Contest, lineup: Player[]) => {
+export const hasTwoDifferentGames = (_: Contest, lineup: Lineup) => {
   const gameSet = new Set();
-  lineup.forEach((player: Player) => gameSet.add(player.game));
+
+  lineup.players.forEach((player: Player) => gameSet.add(player.game));
+
   return gameSet.size >= 2;
 };
 
-export const hasRequiredPlayers = (_: any, lineup: Player[]) => {
+export const hasRequiredPlayers = (_: any, lineup: Lineup) => {
   const lineupNameSet = new Set();
-  lineup.forEach(({ name }) => lineupNameSet.add(name));
+  lineup.players.forEach(({ name }) => lineupNameSet.add(name));
 
   return requiredPlayersConfig.every((name) => lineupNameSet.has(name));
 };
 
 const withLineupCacheCheck = (ruleFunction: RuleFunction) => (
   contest: Contest,
-  lineup: Player[]
+  lineup: Lineup
 ) => {
   // Check cache first
   const cache = getRosterPositionsCache();
-  const serialized = JSON.stringify(lineup.map(({ playerId }) => playerId));
+  const serialized = JSON.stringify(
+    lineup.players.map(({ playerId }) => playerId)
+  );
   const cachedValue = cache[serialized];
   if (cachedValue !== undefined) {
     // Cache hit, return true/false

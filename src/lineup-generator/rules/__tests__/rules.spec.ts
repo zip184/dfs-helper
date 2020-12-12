@@ -5,6 +5,7 @@ import {
   correctPositionCounts,
   hasTwoDifferentGames,
 } from "../index";
+import { populateLineup } from "../../index";
 
 const createPlayer = (fields: object): Player => ({
   playerId: 0,
@@ -27,6 +28,15 @@ const createPlayers = (...positions: string[]): Player[] =>
     return player;
   });
 
+const createLineupFromSalaries = (...salaries: number[]) =>
+  populateLineup(salaries.map((salary) => createPlayer({ salary })));
+
+const createLineupFromPositions = (...positions: string[]) =>
+  populateLineup(createPlayers(...positions));
+
+const createLineupFromPlayers = (...playerFields: object[]) =>
+  populateLineup(playerFields.map((field: object) => createPlayer(field)));
+
 describe("validation rules", () => {
   describe("fitsSalaryCap", () => {
     const createContest = (maxSalary: number): Contest => ({
@@ -36,62 +46,57 @@ describe("validation rules", () => {
     });
 
     it("empty tests", () => {
-      expect(fitsSalaryCap(createContest(0), [])).toBeTruthy();
-      expect(fitsSalaryCap(createContest(100), [])).toBeTruthy();
-      expect(fitsSalaryCap(createContest(-1), [])).not.toBeTruthy();
+      expect(
+        fitsSalaryCap(createContest(0), createLineupFromSalaries())
+      ).toBeTruthy();
+      expect(
+        fitsSalaryCap(createContest(100), createLineupFromSalaries())
+      ).toBeTruthy();
+      expect(
+        fitsSalaryCap(createContest(-1), createLineupFromSalaries())
+      ).not.toBeTruthy();
     });
 
     it("single player", () => {
       expect(
-        fitsSalaryCap(createContest(10), [createPlayer({ salary: 5 })])
+        fitsSalaryCap(createContest(10), createLineupFromSalaries(5))
       ).toBeTruthy();
       expect(
-        fitsSalaryCap(createContest(5), [createPlayer({ salary: 5 })])
+        fitsSalaryCap(createContest(5), createLineupFromSalaries(5))
       ).toBeTruthy();
       expect(
-        fitsSalaryCap(createContest(500), [createPlayer({ salary: 501 })])
+        fitsSalaryCap(createContest(500), createLineupFromSalaries(501))
       ).not.toBeTruthy();
     });
 
     it("multiple players", () => {
       expect(
-        fitsSalaryCap(createContest(50), [
-          createPlayer({ salary: 10 }),
-          createPlayer({ salary: 10 }),
-          createPlayer({ salary: 10 }),
-        ])
+        fitsSalaryCap(createContest(50), createLineupFromSalaries(10, 10, 10))
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(createContest(60), [
-          createPlayer({ salary: 20 }),
-          createPlayer({ salary: 30 }),
-          createPlayer({ salary: 10 }),
-        ])
+        fitsSalaryCap(createContest(60), createLineupFromSalaries(20, 30, 10))
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(createContest(800), [
-          createPlayer({ salary: 100 }),
-          createPlayer({ salary: 500 }),
-          createPlayer({ salary: 200 }),
-        ])
+        fitsSalaryCap(
+          createContest(800),
+          createLineupFromSalaries(100, 500, 200)
+        )
       ).toBeTruthy();
 
       expect(
-        fitsSalaryCap(createContest(799), [
-          createPlayer({ salary: 100 }),
-          createPlayer({ salary: 500 }),
-          createPlayer({ salary: 200 }),
-        ])
+        fitsSalaryCap(
+          createContest(799),
+          createLineupFromSalaries(100, 500, 200)
+        )
       ).not.toBeTruthy();
 
       expect(
-        fitsSalaryCap(createContest(500), [
-          createPlayer({ salary: 100 }),
-          createPlayer({ salary: 500 }),
-          createPlayer({ salary: 200 }),
-        ])
+        fitsSalaryCap(
+          createContest(500),
+          createLineupFromSalaries(100, 500, 200)
+        )
       ).not.toBeTruthy();
     });
   });
@@ -106,29 +111,17 @@ describe("validation rules", () => {
     it("test percent threshold", () => {
       // Less fails
       expect(
-        fitsMinSalaryPct(
-          createContest(100),
-          [createPlayer({ salary: 60 })],
-          0.7
-        )
+        fitsMinSalaryPct(createContest(100), createLineupFromSalaries(60), 0.7)
       ).not.toBeTruthy();
 
       // Same passes
       expect(
-        fitsMinSalaryPct(
-          createContest(100),
-          [createPlayer({ salary: 70 })],
-          0.7
-        )
+        fitsMinSalaryPct(createContest(100), createLineupFromSalaries(70), 0.7)
       ).toBeTruthy();
 
       // Over passes
       expect(
-        fitsMinSalaryPct(
-          createContest(100),
-          [createPlayer({ salary: 80 })],
-          0.7
-        )
+        fitsMinSalaryPct(createContest(100), createLineupFromSalaries(80), 0.7)
       ).toBeTruthy();
     });
   });
@@ -145,7 +138,7 @@ describe("validation rules", () => {
       expect(
         underMaxRemainingSalary(
           createContest(100),
-          [createPlayer({ salary: 80 })],
+          createLineupFromSalaries(80),
           10
         )
       ).not.toBeTruthy();
@@ -154,14 +147,14 @@ describe("validation rules", () => {
       expect(
         underMaxRemainingSalary(
           createContest(1000),
-          [createPlayer({ salary: 800 })],
+          createLineupFromSalaries(800),
           200
         )
       ).toBeTruthy();
       expect(
         underMaxRemainingSalary(
           createContest(100),
-          [createPlayer({ salary: 50 }), createPlayer({ salary: 50 })],
+          createLineupFromSalaries(50, 50),
           0
         )
       ).toBeTruthy();
@@ -170,7 +163,7 @@ describe("validation rules", () => {
       expect(
         underMaxRemainingSalary(
           createContest(100),
-          [createPlayer({ salary: 90 })],
+          createLineupFromSalaries(90),
           20
         )
       ).toBeTruthy();
@@ -191,19 +184,29 @@ describe("validation rules", () => {
     };
 
     it("empty cases", () => {
-      expect(correctPositionCounts(createContest({}), [])).toBeTruthy();
-
       expect(
-        correctPositionCounts(createContest({ RB: 0, TE: 0 }), [])
+        correctPositionCounts(createContest({}), createLineupFromPositions())
       ).toBeTruthy();
 
-      const singlePlayer = createPlayers("TE");
+      expect(
+        correctPositionCounts(
+          createContest({ RB: 0, TE: 0 }),
+          createLineupFromPositions()
+        )
+      ).toBeTruthy();
+
       // One too many of the TE position
       expect(
-        correctPositionCounts(createContest({}), singlePlayer)
+        correctPositionCounts(
+          createContest({}),
+          createLineupFromPositions("TE")
+        )
       ).not.toBeTruthy();
       expect(
-        correctPositionCounts(createContest({ TE: 0 }), singlePlayer)
+        correctPositionCounts(
+          createContest({ TE: 0 }),
+          createLineupFromPositions("TE")
+        )
       ).not.toBeTruthy();
     });
 
@@ -213,7 +216,7 @@ describe("validation rules", () => {
           createContest({
             QB: 1,
           }),
-          createPlayers("QB")
+          createLineupFromPositions("QB")
         )
       ).toBeTruthy();
 
@@ -223,7 +226,7 @@ describe("validation rules", () => {
             RB: 2,
             WR: 3,
           }),
-          createPlayers("WR", "RB", "RB", "WR", "WR")
+          createLineupFromPositions("WR", "RB", "RB", "WR", "WR")
         )
       ).toBeTruthy();
 
@@ -236,7 +239,16 @@ describe("validation rules", () => {
             TE: 1,
             DST: 1,
           }),
-          createPlayers("DST", "WR", "RB", "TE", "RB", "WR", "WR", "QB")
+          createLineupFromPositions(
+            "DST",
+            "WR",
+            "RB",
+            "TE",
+            "RB",
+            "WR",
+            "WR",
+            "QB"
+          )
         )
       ).toBeTruthy();
     });
@@ -247,7 +259,7 @@ describe("validation rules", () => {
           createContest({
             DST: 1,
           }),
-          createPlayers("DST", "DST")
+          createLineupFromPositions("DST", "DST")
         )
       ).not.toBeTruthy();
 
@@ -256,7 +268,7 @@ describe("validation rules", () => {
           createContest({
             QB: 1,
           }),
-          createPlayers("QB", "RB")
+          createLineupFromPositions("QB", "RB")
         )
       ).not.toBeTruthy();
 
@@ -266,7 +278,7 @@ describe("validation rules", () => {
             RB: 2,
             WR: 1,
           }),
-          createPlayers("WR", "RB", "RB", "WR", "WR")
+          createLineupFromPositions("WR", "RB", "RB", "WR", "WR")
         )
       ).not.toBeTruthy();
     });
@@ -278,7 +290,7 @@ describe("validation rules", () => {
             TE: 2,
             WR: 1,
           }),
-          createPlayers("TE", "WR")
+          createLineupFromPositions("TE", "WR")
         )
       ).not.toBeTruthy();
     });
@@ -290,7 +302,7 @@ describe("validation rules", () => {
             RB: 2,
             QB: 1,
           }),
-          createPlayers("RB", "QB", "RB", "DST")
+          createLineupFromPositions("RB", "QB", "RB", "DST")
         )
       ).not.toBeTruthy();
     });
@@ -302,7 +314,7 @@ describe("validation rules", () => {
             TE: 2,
             QB: 1,
           }),
-          createPlayers("TE", "TE") // No QB
+          createLineupFromPositions("TE", "TE") // No QB
         )
       ).not.toBeTruthy();
 
@@ -312,7 +324,7 @@ describe("validation rules", () => {
             RB: 1,
             WR: 2,
           }),
-          createPlayers("RB", "WR", "TE") // Missing WR & extra TE
+          createLineupFromPositions("RB", "WR", "TE") // Missing WR & extra TE
         )
       ).not.toBeTruthy();
     });
@@ -323,7 +335,7 @@ describe("validation rules", () => {
           createContest({
             RB: 1,
           }),
-          createPlayers("RB/FLEX")
+          createLineupFromPositions("RB/FLEX")
         )
       ).toBeTruthy();
 
@@ -332,7 +344,7 @@ describe("validation rules", () => {
           createContest({
             FLEX: 1,
           }),
-          createPlayers("RB/FLEX")
+          createLineupFromPositions("RB/FLEX")
         )
       ).toBeTruthy();
 
@@ -341,7 +353,7 @@ describe("validation rules", () => {
           createContest({
             DST: 1,
           }),
-          createPlayers("RB/FLEX/TE/WR")
+          createLineupFromPositions("RB/FLEX/TE/WR")
         )
       ).not.toBeTruthy();
     });
@@ -353,7 +365,7 @@ describe("validation rules", () => {
             RB: 1,
             FLEX: 1,
           }),
-          createPlayers("WR/FLEX", "DST")
+          createLineupFromPositions("WR/FLEX", "DST")
         )
       ).not.toBeTruthy();
     });
@@ -365,7 +377,7 @@ describe("validation rules", () => {
             RB: 1,
             FLEX: 1,
           }),
-          createPlayers("WR/FLEX", "RB/FLEX")
+          createLineupFromPositions("WR/FLEX", "RB/FLEX")
         )
       ).toBeTruthy();
     });
@@ -377,7 +389,7 @@ describe("validation rules", () => {
             RB: 1,
             FLEX: 1,
           }),
-          createPlayers("FLEX/RB", "WR/FLEX")
+          createLineupFromPositions("FLEX/RB", "WR/FLEX")
         )
       ).toBeTruthy();
 
@@ -387,7 +399,7 @@ describe("validation rules", () => {
             RB: 1,
             FLEX: 1,
           }),
-          createPlayers("RB/FLEX", "RB/WR")
+          createLineupFromPositions("RB/FLEX", "RB/WR")
         )
       ).toBeTruthy();
     });
@@ -401,7 +413,13 @@ describe("validation rules", () => {
             WR: 2,
             FLEX: 1,
           }),
-          createPlayers("FLEX/WR", "FLEX/WR", "FLEX/RB", "FLEX/RB", "QB")
+          createLineupFromPositions(
+            "FLEX/WR",
+            "FLEX/WR",
+            "FLEX/RB",
+            "FLEX/RB",
+            "QB"
+          )
         )
       ).toBeTruthy();
 
@@ -415,13 +433,13 @@ describe("validation rules", () => {
       expect(
         correctPositionCounts(
           contest,
-          createPlayers("QB", "FLEX/WR", "RB/FLEX", "FLEX/RB")
+          createLineupFromPositions("QB", "FLEX/WR", "RB/FLEX", "FLEX/RB")
         )
       ).toBeTruthy();
       expect(
         correctPositionCounts(
           contest,
-          createPlayers("QB", "FLEX/RB", "WR/FLEX", "WR/FLEX")
+          createLineupFromPositions("QB", "FLEX/RB", "WR/FLEX", "WR/FLEX")
         )
       ).toBeTruthy();
     });
@@ -435,102 +453,129 @@ describe("validation rules", () => {
     };
 
     it("Empty case", () => {
-      expect(hasTwoDifferentGames(contest, [])).not.toBeTruthy();
+      expect(
+        hasTwoDifferentGames(contest, createLineupFromPositions())
+      ).not.toBeTruthy();
     });
 
     it("Single game fails", () => {
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "CHI@TEN 11/08/2020 01:00PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers({ game: "CHI@TEN 11/08/2020 01:00PM ET" })
+        )
       ).not.toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" }
+          )
+        )
       ).not.toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "x" },
+            { game: "x" },
+            { game: "x" },
+            { game: "x" }
+          )
+        )
       ).not.toBeTruthy();
     });
 
     it("Two games passes", () => {
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "CHI@TEN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "CHI@TEN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" }
+          )
+        )
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "DET@MIN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+            { game: "DET@MIN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" }
+          )
+        )
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "y" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "x" },
+            { game: "y" },
+            { game: "y" },
+            { game: "x" },
+            { game: "x" },
+            { game: "x" },
+            { game: "y" },
+            { game: "y" },
+            { game: "y" }
+          )
+        )
       ).toBeTruthy();
     });
 
     it("More games passes", () => {
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-          createPlayer({ game: "HOU@JAX 11/08/2020 01:00PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "DET@MIN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+            { game: "DET@MIN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+            { game: "HOU@JAX 11/08/2020 01:00PM ET" }
+          )
+        )
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "DET@MIN 11/08/2020 01:00PM ET" }),
-          createPlayer({ game: "PIT@DAL 11/08/2020 04:25PM ET" }),
-          createPlayer({ game: "DEN@ATL 11/08/2020 01:00PM ET" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "DET@MIN 11/08/2020 01:00PM ET" },
+            { game: "PIT@DAL 11/08/2020 04:25PM ET" },
+            { game: "DEN@ATL 11/08/2020 01:00PM ET" }
+          )
+        )
       ).toBeTruthy();
 
       expect(
-        hasTwoDifferentGames(contest, [
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "z" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "a" }),
-          createPlayer({ game: "b" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "z" }),
-          createPlayer({ game: "x" }),
-          createPlayer({ game: "y" }),
-          createPlayer({ game: "x" }),
-        ])
+        hasTwoDifferentGames(
+          contest,
+          createLineupFromPlayers(
+            { game: "x" },
+            { game: "y" },
+            { game: "x" },
+            { game: "x" },
+            { game: "z" },
+            { game: "x" },
+            { game: "y" },
+            { game: "a" },
+            { game: "b" },
+            { game: "x" },
+            { game: "x" },
+            { game: "z" },
+            { game: "x" },
+            { game: "y" },
+            { game: "x" }
+          )
+        )
       ).toBeTruthy();
     });
   });

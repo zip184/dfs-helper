@@ -5,11 +5,7 @@ import { saveCache } from "../cache-db";
 const outputStream = process.stdout;
 const updateProgressPeriod = 10000;
 
-const runRules = (
-  rules: LineupRule[],
-  contest: Contest,
-  lineups: Player[][]
-) => {
+const runRules = (rules: LineupRule[], contest: Contest, lineups: Lineup[]) => {
   let remainingLineups = lineups;
 
   rules.forEach((rule) => {
@@ -21,7 +17,7 @@ const runRules = (
 
     outputStream.write(outputLine);
 
-    remainingLineups = remainingLineups.filter((lineup: Player[], i) => {
+    remainingLineups = remainingLineups.filter((lineup: Lineup, i) => {
       const passed = ruleFunction(contest, lineup);
 
       if (i % updateProgressPeriod === 0) {
@@ -48,7 +44,7 @@ const runRules = (
   return remainingLineups;
 };
 
-export const getPassingLineups = (contest: Contest, lineups: Player[][]) => {
+export const getPassingLineups = (contest: Contest, lineups: Lineup[]) => {
   let validLineups = lineups;
 
   const validationRules = allRules.filter((rule) => rule.isDkValidationRule);

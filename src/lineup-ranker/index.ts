@@ -1,10 +1,10 @@
 // const randomRankerScorrer = () => Math.floor(Math.random() * 100);
 
-const salaryRankScorrer = (lineup: Player[]) =>
-  lineup.reduce((total, player) => total + +player.salary, 0);
+const salaryRankScorrer = (lineup: Lineup) =>
+  lineup.players.reduce((total, player) => total + +player.salary, 0);
 
-const pointsAvgRankScorrer = (lineup: Player[]) =>
-  lineup.reduce((total, player) => {
+const pointsAvgRankScorrer = (lineup: Lineup) =>
+  lineup.players.reduce((total, player) => {
     const { avgPoints, multiplier } = player;
     let score = +avgPoints;
 
@@ -15,7 +15,7 @@ const pointsAvgRankScorrer = (lineup: Player[]) =>
     return total + score;
   }, 0);
 
-const salaryAvgPpgScorrer = (lineup: Player[]) => {
+const salaryAvgPpgScorrer = (lineup: Lineup) => {
   // const salary = salaryRankScorrer(lineup);
   const ptsAvg = pointsAvgRankScorrer(lineup);
 
@@ -28,14 +28,14 @@ const rankScorrer = salaryAvgPpgScorrer;
 
 export const findTopNLineups = (
   _: Contest,
-  allLineups: Player[][],
+  allLineups: Lineup[],
   n: number,
   scorrer = rankScorrer
 ) => {
   const scoredLineups = allLineups.map(
     (lineup) =>
       <Lineup>{
-        players: lineup,
+        players: lineup.players,
         score: scorrer(lineup),
         salary: salaryRankScorrer(lineup),
         avgPoints: pointsAvgRankScorrer(lineup),
@@ -43,7 +43,7 @@ export const findTopNLineups = (
   );
 
   scoredLineups.sort((lineA, lineB) => {
-    return lineB.score - lineA.score;
+    return (lineB.score || 0) - (lineA.score || 0);
   });
 
   return scoredLineups.splice(0, n);

@@ -25,14 +25,14 @@ interface Contest {
 }
 
 interface Lineup {
-  score: number;
+  score?: number;
   players: Player[];
   salary: number;
   avgPoints: number;
 }
 
 // Returns truthy if rule passes
-type RuleFunction = (contest: Contest, lineup: Player[]) => any;
+type RuleFunction = (contest: Contest, lineup: Lineup) => any;
 
 interface LineupRule {
   ruleFunction: RuleFunction;
