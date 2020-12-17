@@ -61,18 +61,21 @@ export const correctPositionCounts = (
   contest: Contest,
   lineup: Lineup,
   skippedAssignmentSet = new Set()
-): Map<number, string> | null => {
+): boolean => {
   const { roster, playerCount } = contest;
-  const playerPositions = new Map<number, string>();
+  if (!lineup.fantasyPositions) {
+    lineup.fantasyPositions = new Map<number, string>();
+  }
 
   if (playerCount === 0 && lineup.players.length === 0) {
     // Empty lineup is correct for no positions
-    return playerPositions;
+    return true;
   }
 
   if (playerCount !== lineup.players.length) {
     // Too little or too many players, fails
-    return null;
+    lineup.fantasyPositions = undefined;
+    return false;
   }
 
   const pickedPositionCounts = new Map<string, number>();
@@ -109,13 +112,13 @@ export const correctPositionCounts = (
         }
 
         pickedPos = pos;
-        playerPositions.set(player.playerId, pos);
+        lineup.fantasyPositions.set(player.playerId, pos);
         pickedPositionCounts.set(pos, curPosCount + 1);
         pickedCount++;
 
         if (pickedCount === playerCount) {
           // We've found a valid lineup configuration!
-          return playerPositions;
+          return true;
         }
 
         // We've chosen this position, move into the next player
@@ -132,7 +135,8 @@ export const correctPositionCounts = (
   // We did not find valid configuration
   if (!lastHashToSkip) {
     // We know there were no more optional positions to try so we know this lineup failed
-    return null;
+    lineup.fantasyPositions = undefined;
+    return false;
   }
 
   // There's more configurations to try
@@ -155,10 +159,11 @@ export const hasRequiredPlayers = (_: any, lineup: Lineup) => {
   return requiredPlayersConfig.every((name) => lineupNameSet.has(name));
 };
 
-const withLineupCacheCheck = (ruleFunction: RuleFunction) => (
-  contest: Contest,
-  lineup: Lineup
-) => {
+const withLineupCacheCheck = (
+  ruleFunction: RuleFunction,
+  getCacheValue?: (lineup: Lineup) => any,
+  setCacheValue?: (lineup: Lineup, value: any) => any
+) => (contest: Contest, lineup: Lineup) => {
   // Check cache first
   const cache = getRosterPositionsCache();
   const serialized = JSON.stringify(
@@ -167,16 +172,24 @@ const withLineupCacheCheck = (ruleFunction: RuleFunction) => (
   const cachedValue = cache[serialized];
   if (cachedValue !== undefined) {
     // Cache hit, return true/false
-    return cachedValue;
+
+    if (setCacheValue) {
+      setCacheValue(lineup, cachedValue);
+    }
+
+    return !!cachedValue;
   }
 
-  const hasCorrect = ruleFunction(contest, lineup);
+  const isValid = ruleFunction(contest, lineup);
+
+  // Store true/false if no cached value specified
+  const valToStore = getCacheValue ? getCacheValue(lineup) : isValid;
 
   // Save value in cache
-  cache[serialized] = hasCorrect;
+  cache[serialized] = valToStore;
   setRosterPositionsCache(cache);
 
-  return hasCorrect;
+  return isValid;
 };
 
 export const allRules: LineupRule[] = [
@@ -201,7 +214,36 @@ export const allRules: LineupRule[] = [
     isDkValidationRule: false,
   },
   {
-    ruleFunction: withLineupCacheCheck(correctPositionCounts),
+    ruleFunction: withLineupCacheCheck(
+      correctPositionCounts,
+      (lineup: Lineup) => {
+        if (!lineup.fantasyPositions) {
+          return null;
+        }
+
+        return [...lineup.fantasyPositions.keys()].reduce<object>(
+          (acc: object, key: number) => ({
+            ...acc,
+            [key]: lineup.fantasyPositions?.get(key),
+          }),
+          {}
+        );
+      },
+      (lineup: Lineup, value: any) => {
+        if (!value) {
+          lineup.fantasyPositions = undefined;
+          return;
+        }
+
+        const positions = new Map<number, string>();
+
+        Object.keys(value).forEach((key) => {
+          positions.set(+key, value[key]);
+        });
+
+        lineup.fantasyPositions = positions;
+      }
+    ),
     title: "Has Correct Position Counts",
     isDkValidationRule: true,
     usesCacheDb: true,

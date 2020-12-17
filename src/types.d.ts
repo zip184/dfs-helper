@@ -29,10 +29,11 @@ interface Lineup {
   players: Player[];
   salary: number;
   avgPoints: number;
+  fantasyPositions?: Map<number, string>;
 }
 
 // Returns truthy if rule passes
-type RuleFunction = (contest: Contest, lineup: Lineup) => any;
+type RuleFunction = (contest: Contest, lineup: Lineup) => boolean;
 
 interface LineupRule {
   ruleFunction: RuleFunction;

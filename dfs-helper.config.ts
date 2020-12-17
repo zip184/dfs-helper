@@ -33,18 +33,17 @@ export const playerRowKeyNames = [
 
 export const mapPlayer = (playerData: any) =>
   <Player>{
-    playerId: playerData.playerId,
+    playerId: +playerData.playerId,
     position: playerData.position,
     name: playerData.name,
     rosterPositions: playerData.rosterPositions.split("/"),
-    salary: playerData.salary,
+    salary: +playerData.salary,
     game: playerData.game,
     team: playerData.team,
-    avgPoints: playerData.avgPoints,
-    multiplier: playerData.multiplier,
+    avgPoints: +playerData.avgPoints,
+    multiplier: +playerData.multiplier,
   };
 
-// const requiredPlayers = ["Aaron Jones", "Mike Davis", "Stefon Diggs"];
 export const requiredPlayers: string[] = [];
 
 export const minSalaryThresholdPct = 0;

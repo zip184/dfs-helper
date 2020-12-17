@@ -6,7 +6,7 @@ const salaryRankScorrer = (lineup: Lineup) =>
 const pointsAvgRankScorrer = (lineup: Lineup) =>
   lineup.players.reduce((total, player) => {
     const { avgPoints, multiplier } = player;
-    let score = +avgPoints;
+    let score = avgPoints;
 
     if (multiplier) {
       score *= multiplier;
@@ -35,6 +35,7 @@ export const findTopNLineups = (
   const scoredLineups = allLineups.map(
     (lineup) =>
       <Lineup>{
+        ...lineup,
         players: lineup.players,
         score: scorrer(lineup),
         salary: salaryRankScorrer(lineup),

@@ -5,11 +5,47 @@ import { contest } from "../../dfs-helper.config";
 import { findTopNLineups } from "../lineup-ranker";
 import { numberWithCommas } from "../utils";
 
-const printIds = (label: string, players: Player[]) =>
+const printLineup = (lineup: Lineup, i: number) => {
+  const { score, players, salary, avgPoints } = lineup;
+
+  const lineupPart = `lineup rank #${
+    i + 1
+  } score: ${score} salary: $${salary} avgPoints: ${avgPoints.toFixed(2)}`;
+
+  const positionRanks = new Map<string, number>();
+  [...contest.roster.keys()].forEach((pos, i) => {
+    positionRanks.set(pos, i + 1);
+  });
+
+  const orderedPlayers = players.sort((pa, pb) => {
+    // First by position order
+    const fantPosA = lineup.fantasyPositions?.get(pa.playerId);
+    const fantPosB = lineup.fantasyPositions?.get(pb.playerId);
+    if (!fantPosA || !fantPosB) {
+      return 0;
+    }
+
+    const aRank = positionRanks.get(fantPosA) || -1;
+    const bRank = positionRanks.get(fantPosB) || -1;
+
+    if (aRank < bRank) {
+      return -1;
+    } else if (aRank > bRank) {
+      return 1;
+    }
+
+    // Next by salary descending
+    return pb.salary - pa.salary;
+  });
+
   console.log(
-    label,
-    players.map((p) => `${p.position} ${p.name} ${p.salary}`)
+    lineupPart,
+    orderedPlayers.map(
+      (p) =>
+        `${lineup.fantasyPositions?.get(p.playerId)}: ${p.name} $${p.salary}`
+    )
   );
+};
 
 const main = async () => {
   const cliArgs = process.argv.slice(2);
@@ -21,27 +57,15 @@ const main = async () => {
 
   const players = await readPlayersCsv(fileName);
 
-  // printIds("players", players);
-  // console.log(players);
-
   const allLineups = await generateAllValidLineups(contest, players);
 
   console.log(
     `Total valid lineups found: ${numberWithCommas(allLineups.length)}`
   );
 
-  const topLineups = findTopNLineups(contest, allLineups, 4);
+  const topLineups = findTopNLineups(contest, allLineups, 5);
 
-  topLineups.forEach((lineup: Lineup, i: number) => {
-    const { score, players, salary, avgPoints } = lineup;
-
-    printIds(
-      `lineup rank #${
-        i + 1
-      } score: ${score} salary: ${salary} avgPoints: ${avgPoints.toFixed(2)}`,
-      players.sort((a: Player, b: Player) => b.salary - a.salary)
-    );
-  });
+  topLineups.forEach(printLineup);
 };
 
 main().catch((err) => console.error("Error occured in main script:", err));
