@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { readPlayersCsv } from "../load-players";
 import { generateAllValidLineups } from "../lineup-generator";
 import { contest } from "../../dfs-helper.config";
