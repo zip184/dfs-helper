@@ -1,5 +1,6 @@
 import got from "got";
 import { parse } from "node-html-parser";
+import { getTeamAbbrFromName, colorOutputText } from "../utils";
 
 enum SubTeam {
   OFFENSE = "offense",
@@ -20,6 +21,8 @@ class NfsDotComScapingError extends Error {
 }
 
 const TEAM_COL = "Team";
+
+const outputStream = process.stdout;
 
 export class NflDotComStatsProvider implements StatsProvider {
   private year: number;
@@ -113,6 +116,11 @@ export class NflDotComStatsProvider implements StatsProvider {
         tableData.push(dataRow);
       });
 
+      // Replace team name with abbreviation
+      tableData.forEach((row: any) => {
+        row[TEAM_COL] = getTeamAbbrFromName(row[TEAM_COL]);
+      });
+
       return tableData;
     } catch (error) {
       throw new NfsDotComScapingError(error);
@@ -120,6 +128,10 @@ export class NflDotComStatsProvider implements StatsProvider {
   };
 
   fetchData = async (): Promise<void> => {
+    outputStream.write(
+      colorOutputText("Downloading stats from nfl.com...\n", "yellow")
+    );
+
     const defensePassingData = await this.scrapeNflDotComPage(
       this.year,
       SubTeam.DEFENSE,
@@ -127,12 +139,16 @@ export class NflDotComStatsProvider implements StatsProvider {
     );
 
     const statsByTeam = new Map<string, SeasonStats>(
-      defensePassingData.map((teamRow: any) => [
-        teamRow[TEAM_COL],
-        <SeasonStats>{
-          team: teamRow[TEAM_COL],
-        },
-      ])
+      defensePassingData.map((teamRow: any) => {
+        const teamAbbr = teamRow[TEAM_COL];
+
+        return [
+          teamAbbr || "",
+          <SeasonStats>{
+            team: teamAbbr,
+          },
+        ];
+      })
     );
 
     // Defense allowed passing yards

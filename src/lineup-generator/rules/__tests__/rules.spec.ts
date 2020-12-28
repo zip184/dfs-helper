@@ -17,6 +17,8 @@ const createPlayer = (fields: object): Player => ({
   team: "",
   avgPoints: 0,
   multiplier: 0,
+  opposingTeam: "",
+  isHome: false,
   ...fields,
 });
 

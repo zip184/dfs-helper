@@ -1,9 +1,12 @@
-// const randomRankerScorrer = () => Math.floor(Math.random() * 100);
+import * as statsService from "../stats-service";
+import statsRanker from "./stats-ranker";
 
-const salaryRankScorrer = (lineup: Lineup) =>
+// const randomRankerScorrer: LineupScorrer = () => Math.floor(Math.random() * 100);
+
+const salaryRankScorrer: LineupScorrer = (lineup: Lineup) =>
   lineup.players.reduce((total, player) => total + +player.salary, 0);
 
-const pointsAvgRankScorrer = (lineup: Lineup) =>
+const pointsAvgRankScorrer: LineupScorrer = (lineup: Lineup) =>
   lineup.players.reduce((total, player) => {
     const { avgPoints, multiplier } = player;
     let score = avgPoints;
@@ -15,7 +18,7 @@ const pointsAvgRankScorrer = (lineup: Lineup) =>
     return total + score;
   }, 0);
 
-const salaryAvgPpgScorrer = (lineup: Lineup) => {
+const salaryAvgPpgScorrer: LineupScorrer = (lineup: Lineup) => {
   // const salary = salaryRankScorrer(lineup);
   const ptsAvg = pointsAvgRankScorrer(lineup);
 
@@ -24,14 +27,19 @@ const salaryAvgPpgScorrer = (lineup: Lineup) => {
   return ptsAvg;
 };
 
-const rankScorrer = salaryAvgPpgScorrer;
+const rankScorrer = statsRanker;
+//const rankScorrer = salaryAvgPpgScorrer;
 
-export const findTopNLineups = (
+export const findTopNLineups = async (
   _: Contest,
   allLineups: Lineup[],
   n: number,
-  scorrer = rankScorrer
+  scorrer: LineupScorrer = rankScorrer
 ) => {
+  if (rankScorrer === statsRanker) {
+    await statsService.fetchStats();
+  }
+
   const scoredLineups = allLineups.map(
     (lineup) =>
       <Lineup>{

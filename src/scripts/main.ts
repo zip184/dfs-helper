@@ -62,7 +62,7 @@ const main = async () => {
     `Total valid lineups found: ${numberWithCommas(allLineups.length)}`
   );
 
-  const topLineups = findTopNLineups(contest, allLineups, 5);
+  const topLineups = await findTopNLineups(contest, allLineups, 5);
 
   topLineups.forEach(printLineup);
 };

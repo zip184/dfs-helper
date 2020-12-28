@@ -16,6 +16,8 @@ interface Player {
   team: string;
   avgPoints: number;
   multiplier: number;
+  opposingTeam: string;
+  isHome: boolean;
 }
 
 interface Contest {
@@ -32,12 +34,14 @@ interface Lineup {
   fantasyPositions?: Map<number, string>;
 }
 
-// Returns truthy if rule passes
-type RuleFunction = (contest: Contest, lineup: Lineup) => boolean;
-
 interface LineupRule {
   ruleFunction: RuleFunction;
   title: string;
   isDkValidationRule: boolean;
   usesCacheDb?: boolean;
 }
+
+// Returns truthy if rule passes
+type RuleFunction = (contest: Contest, lineup: Lineup) => boolean;
+
+type LineupScorrer = (lineup: Lineup) => number;

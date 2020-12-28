@@ -1,3 +1,5 @@
+import { nflTeams } from "../../dfs-helper.config";
+
 // Finds all array permutations, including different orders
 // No longer used since removing duplicates later is slow
 export const findAllArrayPermutations = <T>(items: T[], maxSize: number) => {
@@ -155,3 +157,9 @@ export const factorial = (n: number): number => {
 
   return result;
 };
+
+const fullNameMap = new Map<string, string>(
+  nflTeams.map(({ fullName, name }) => [fullName, name])
+);
+export const getTeamAbbrFromName = (fullName: string) =>
+  fullNameMap.get(fullName);
