@@ -59,8 +59,13 @@ const statsRanker: LineupScorrer = (lineup: Lineup) => {
       oppFactorCache.set(player.playerId, oppFactor);
     }
 
+    let { multiplier } = player;
+    if (multiplier === 0) {
+      multiplier = 1.0;
+    }
+
     // TODO do isHome too
-    return total + player.avgPoints * player.multiplier * oppFactor;
+    return total + player.avgPoints * multiplier * oppFactor;
   }, 0);
 };
 

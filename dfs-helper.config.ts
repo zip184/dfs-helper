@@ -1,4 +1,4 @@
-export const contestYear = new Date().getFullYear();
+
 
 const mapContest = (contestData: any) => {
   const playerCount = Object.values<number>(contestData.roster).reduce(
@@ -51,7 +51,9 @@ export const requiredPlayers: string[] = [];
 export const minSalaryThresholdPct = 0;
 export const maxRemainingSalaryThreshold = 10000;
 
-export const statsRankerOppFactorExponent = 2.0;
+export const statsRankerOppFactorExponent = 1.0;
+
+export const contestYear = 2020;  // new Date().getFullYear();
 
 export const nflTeams = [
   {
